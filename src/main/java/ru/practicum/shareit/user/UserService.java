@@ -26,7 +26,7 @@ public class UserService {
 
     public User update(Long id, User user) {
         if (!users.containsKey(id)) {
-            throw new RuntimeException("Пользователь с ID " + id + " не найден");
+            throw new RuntimeException(String.format("Пользователь с ID %d не найден", id));
         }
         User existing = users.get(id);
 

@@ -26,7 +26,7 @@ public class ItemService {
     public ItemDto create(ItemDto dto, Long userId) {
         validate(dto);
         if (!userService.existsById(userId)) {
-            throw new RuntimeException("Пользователь с ID " + userId + " не найден");
+            throw new RuntimeException(String.format("Пользователь с ID %d не найден", userId));
         }
         Item item = new Item();
         item.setName(dto.getName());
@@ -40,11 +40,11 @@ public class ItemService {
 
     public ItemDto update(Long itemId, ItemDto dto, Long userId) {
         if (!items.containsKey(itemId)) {
-            throw new RuntimeException("Вещь с ID " + itemId + " не найдена");
+            throw new RuntimeException(String.format("Пользователь с ID %d не найден", itemId));
         }
         Item item = items.get(itemId);
         if (!item.getOwnerId().equals(userId)) {
-            throw new AccessDeniedException("Пользователь " + userId + " не является владельцем вещи " + itemId);
+            throw new AccessDeniedException(String.format("Пользователь %d не является владельцем вещи %d", userId, itemId));
         }
         if (dto.getName() != null && !dto.getName().isBlank()) {
             item.setName(dto.getName());
@@ -66,7 +66,7 @@ public class ItemService {
 
     public List<ItemDto> getOwnerItems(Long userId) {
         if (!userService.existsById(userId)) {
-            throw new RuntimeException("Пользователь с ID " + userId + " не найден");
+            throw new RuntimeException(String.format("Пользователь с ID %d не найден", userId));
         }
         return items.values().stream().filter(item -> item.getOwnerId().equals(userId)).map(this::toItemDto).collect(Collectors.toList());
     }
