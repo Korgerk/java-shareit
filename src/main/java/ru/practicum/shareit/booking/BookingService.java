@@ -7,6 +7,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingItemDto;
+import ru.practicum.shareit.booking.dto.BookingUserDto;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.expectation.AccessDeniedException;
 import ru.practicum.shareit.item.ItemRepository;
@@ -14,6 +16,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserService;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,7 +31,7 @@ public class BookingService {
 
     public BookingDto create(BookingDto dto, Long userId) {
         User booker = userService.getById(userId);
-        Item item = itemRepository.findById(dto.getItemId()).orElseThrow(() -> new RuntimeException(String.format("Вещь с ID %d не найдена", dto.getItemId())));
+        Item item = itemRepository.findById(dto.getId()).orElseThrow(() -> new RuntimeException(String.format("Вещь с ID %d не найдена", dto.getId())));
 
         if (!item.getAvailable()) {
             throw new RuntimeException("Вещь недоступна для бронирования.");
@@ -51,6 +54,9 @@ public class BookingService {
             throw new IllegalArgumentException("Дата окончания бронирования должна быть позже даты начала.");
         }
         if (start.isEqual(end)) {
+            throw new IllegalArgumentException("Дата окончания бронирования должна быть позже даты начала.");
+        }
+        if (Duration.between(start, end).getSeconds() < 1) {
             throw new IllegalArgumentException("Дата окончания бронирования должна быть позже даты начала.");
         }
 
@@ -162,8 +168,16 @@ public class BookingService {
         dto.setId(booking.getId());
         dto.setStart(booking.getStart());
         dto.setEnd(booking.getEnd());
-        dto.setItemId(booking.getItem().getId());
-        dto.setBookerId(booking.getBooker().getId());
+
+        BookingItemDto itemDto = new BookingItemDto();
+        itemDto.setId(booking.getItem().getId());
+        itemDto.setName(booking.getItem().getName());
+        dto.setItem(itemDto);
+
+        BookingUserDto bookerDto = new BookingUserDto();
+        bookerDto.setId(booking.getBooker().getId());
+        dto.setBooker(bookerDto);
+
         dto.setStatus(booking.getStatus());
         return dto;
     }
