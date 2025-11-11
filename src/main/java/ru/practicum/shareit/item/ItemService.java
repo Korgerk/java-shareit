@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingShortDto;
-import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.expectation.AccessDeniedException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -117,14 +116,12 @@ public class ItemService {
 
     private ItemDto toItemDtoWithDetails(Item item) {
         ItemDto dto = toItemDto(item);
-
         List<CommentDto> comments = commentRepository.findByItem_IdOrderByCreatedDesc(item.getId()).stream().map(this::toCommentDto).collect(Collectors.toList());
         dto.setComments(comments);
 
-        List<Booking> allPastBookings = bookingRepository.findPastBookingsForItem(item.getId(), LocalDateTime.now());
-        List<Booking> approvedPastBookings = allPastBookings.stream().filter(b -> b.getStatus() == BookingStatus.APPROVED).collect(Collectors.toList());
-        if (!approvedPastBookings.isEmpty()) {
-            Booking lastBooking = approvedPastBookings.get(0);
+        List<Booking> lastApprovedPastBookings = bookingRepository.findApprovedPastBookingsForItem(item.getId(), LocalDateTime.now());
+        if (!lastApprovedPastBookings.isEmpty()) {
+            Booking lastBooking = lastApprovedPastBookings.get(0);
             BookingShortDto lastDto = new BookingShortDto();
             lastDto.setId(lastBooking.getId());
             lastDto.setStart(lastBooking.getStart());
@@ -136,10 +133,9 @@ public class ItemService {
             dto.setLastBooking(null);
         }
 
-        List<Booking> allFutureBookings = bookingRepository.findFutureBookingsForItem(item.getId(), LocalDateTime.now());
-        List<Booking> approvedFutureBookings = allFutureBookings.stream().filter(b -> b.getStatus() == BookingStatus.APPROVED).collect(Collectors.toList());
-        if (!approvedFutureBookings.isEmpty()) {
-            Booking nextBooking = approvedFutureBookings.get(0);
+        List<Booking> nextApprovedFutureBookings = bookingRepository.findApprovedFutureBookingsForItem(item.getId(), LocalDateTime.now());
+        if (!nextApprovedFutureBookings.isEmpty()) {
+            Booking nextBooking = nextApprovedFutureBookings.get(0);
             BookingShortDto nextDto = new BookingShortDto();
             nextDto.setId(nextBooking.getId());
             nextDto.setStart(nextBooking.getStart());
@@ -150,7 +146,6 @@ public class ItemService {
         } else {
             dto.setNextBooking(null);
         }
-
         return dto;
     }
 
