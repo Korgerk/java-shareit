@@ -34,11 +34,11 @@ public class BookingService {
         Item item = itemRepository.findById(dto.getItemId()).orElseThrow(() -> new RuntimeException(String.format("Вещь с ID %d не найдена", dto.getItemId())));
 
         if (!item.getAvailable()) {
-            throw new RuntimeException("Вещь недоступна для бронирования.");
+            throw new IllegalArgumentException("Вещь недоступна для бронирования.");
         }
 
         if (item.getOwner().getId().equals(userId)) {
-            throw new RuntimeException("Владелец не может забронировать свою вещь.");
+            throw new IllegalArgumentException("Владелец не может забронировать свою вещь.");
         }
 
         LocalDateTime start = dto.getStart();

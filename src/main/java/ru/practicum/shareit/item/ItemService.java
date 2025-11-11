@@ -93,7 +93,7 @@ public class ItemService {
         boolean hasBooked = pastBookings.stream().anyMatch(b -> b.getItem().getId().equals(itemId));
 
         if (!hasBooked) {
-            throw new RuntimeException("Пользователь не может оставить комментарий, так как не брал вещь в аренду.");
+            throw new IllegalArgumentException("Пользователь не может оставить комментарий, так как не брал вещь в аренду.");
         }
 
         Comment comment = new Comment();
