@@ -31,7 +31,6 @@ public class ItemService {
     public ItemDto create(ItemDto dto, Long userId) {
         validate(dto);
         User owner = userService.getById(userId);
-
         Item item = new Item();
         item.setName(dto.getName());
         item.setDescription(dto.getDescription());
@@ -43,11 +42,9 @@ public class ItemService {
 
     public ItemDto update(Long itemId, ItemDto dto, Long userId) {
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new RuntimeException(String.format("Вещь с ID %d не найдена", itemId)));
-
         if (!item.getOwner().getId().equals(userId)) {
             throw new AccessDeniedException(String.format("Пользователь %d не является владельцем вещи %d", userId, itemId));
         }
-
         if (dto.getName() != null && !dto.getName().isBlank()) {
             item.setName(dto.getName());
         }
@@ -62,16 +59,17 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
-    public ItemDto getById(Long id) {
+    public ItemDto getById(Long id, Long userId) {
         Item item = itemRepository.findById(id).orElseThrow(() -> new RuntimeException("Вещь не найдена"));
-        return toItemDtoWithDetails(item);
+        boolean isOwner = item.getOwner().getId().equals(userId);
+        return toItemDtoWithDetails(item, isOwner);
     }
 
     @Transactional(readOnly = true)
     public List<ItemDto> getOwnerItems(Long userId) {
         userService.getById(userId);
         List<Item> items = itemRepository.findByOwner_Id(userId, PageRequest.of(0, 1000)).getContent();
-        return items.stream().map(this::toItemDtoWithDetails).collect(Collectors.toList());
+        return items.stream().map(item -> toItemDtoWithDetails(item, true)).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -85,22 +83,17 @@ public class ItemService {
 
     public CommentDto addComment(Long itemId, Long userId, Comment commentDto) {
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new RuntimeException(String.format("Вещь с ID %d не найдена", itemId)));
-
         User author = userService.getById(userId);
-
         List<Booking> pastBookings = bookingRepository.findPastBookingsByBooker(userId, LocalDateTime.now());
         boolean hasBooked = pastBookings.stream().anyMatch(b -> b.getItem().getId().equals(itemId));
-
         if (!hasBooked) {
             throw new IllegalArgumentException("Пользователь не может оставить комментарий, так как не брал вещь в аренду.");
         }
-
         Comment comment = new Comment();
         comment.setText(commentDto.getText());
         comment.setItem(item);
         comment.setAuthor(author);
         comment.setCreated(LocalDateTime.now());
-
         comment = commentRepository.save(comment);
         return toCommentDto(comment);
     }
@@ -114,36 +107,41 @@ public class ItemService {
         return dto;
     }
 
-    private ItemDto toItemDtoWithDetails(Item item) {
+    private ItemDto toItemDtoWithDetails(Item item, boolean isOwner) {
         ItemDto dto = toItemDto(item);
         List<CommentDto> comments = commentRepository.findByItem_IdOrderByCreatedDesc(item.getId()).stream().map(this::toCommentDto).collect(Collectors.toList());
         dto.setComments(comments);
 
-        List<Booking> lastApprovedPastBookings = bookingRepository.findApprovedPastBookingsForItem(item.getId(), LocalDateTime.now());
-        if (!lastApprovedPastBookings.isEmpty()) {
-            Booking lastBooking = lastApprovedPastBookings.get(0);
-            BookingShortDto lastDto = new BookingShortDto();
-            lastDto.setId(lastBooking.getId());
-            lastDto.setStart(lastBooking.getStart());
-            lastDto.setEnd(lastBooking.getEnd());
-            lastDto.setBookerId(lastBooking.getBooker().getId());
-            lastDto.setStatus(lastBooking.getStatus().toString());
-            dto.setLastBooking(lastDto);
+        if (isOwner) {
+            List<Booking> approvedPastBookings = bookingRepository.findApprovedPastBookingsForItem(item.getId(), LocalDateTime.now());
+            if (!approvedPastBookings.isEmpty()) {
+                Booking lastBooking = approvedPastBookings.get(0);
+                BookingShortDto lastDto = new BookingShortDto();
+                lastDto.setId(lastBooking.getId());
+                lastDto.setStart(lastBooking.getStart());
+                lastDto.setEnd(lastBooking.getEnd());
+                lastDto.setBookerId(lastBooking.getBooker().getId());
+                lastDto.setStatus(lastBooking.getStatus().toString());
+                dto.setLastBooking(lastDto);
+            } else {
+                dto.setLastBooking(null);
+            }
+
+            List<Booking> approvedFutureBookings = bookingRepository.findApprovedFutureBookingsForItem(item.getId(), LocalDateTime.now());
+            if (!approvedFutureBookings.isEmpty()) {
+                Booking nextBooking = approvedFutureBookings.get(0);
+                BookingShortDto nextDto = new BookingShortDto();
+                nextDto.setId(nextBooking.getId());
+                nextDto.setStart(nextBooking.getStart());
+                nextDto.setEnd(nextBooking.getEnd());
+                nextDto.setBookerId(nextBooking.getBooker().getId());
+                nextDto.setStatus(nextBooking.getStatus().toString());
+                dto.setNextBooking(nextDto);
+            } else {
+                dto.setNextBooking(null);
+            }
         } else {
             dto.setLastBooking(null);
-        }
-
-        List<Booking> nextApprovedFutureBookings = bookingRepository.findApprovedFutureBookingsForItem(item.getId(), LocalDateTime.now());
-        if (!nextApprovedFutureBookings.isEmpty()) {
-            Booking nextBooking = nextApprovedFutureBookings.get(0);
-            BookingShortDto nextDto = new BookingShortDto();
-            nextDto.setId(nextBooking.getId());
-            nextDto.setStart(nextBooking.getStart());
-            nextDto.setEnd(nextBooking.getEnd());
-            nextDto.setBookerId(nextBooking.getBooker().getId());
-            nextDto.setStatus(nextBooking.getStatus().toString());
-            dto.setNextBooking(nextDto);
-        } else {
             dto.setNextBooking(null);
         }
         return dto;
