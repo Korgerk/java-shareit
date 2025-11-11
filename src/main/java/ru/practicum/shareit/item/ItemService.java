@@ -2,7 +2,6 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
@@ -44,8 +43,7 @@ public class ItemService {
     }
 
     public ItemDto update(Long itemId, ItemDto dto, Long userId) {
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException(String.format("Вещь с ID %d не найдена", itemId)));
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new RuntimeException(String.format("Вещь с ID %d не найдена", itemId)));
 
         if (!item.getOwner().getId().equals(userId)) {
             throw new AccessDeniedException(String.format("Пользователь %d не является владельцем вещи %d", userId, itemId));
@@ -66,8 +64,7 @@ public class ItemService {
 
     @Transactional(readOnly = true)
     public ItemDto getById(Long id) {
-        Item item = itemRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Вещь не найдена"));
+        Item item = itemRepository.findById(id).orElseThrow(() -> new RuntimeException("Вещь не найдена"));
         return toItemDtoWithDetails(item);
     }
 
@@ -88,14 +85,12 @@ public class ItemService {
     }
 
     public CommentDto addComment(Long itemId, Long userId, Comment commentDto) {
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException(String.format("Вещь с ID %d не найдена", itemId)));
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new RuntimeException(String.format("Вещь с ID %d не найдена", itemId)));
 
         User author = userService.getById(userId);
 
         List<Booking> pastBookings = bookingRepository.findPastBookingsByBooker(userId, LocalDateTime.now());
-        boolean hasBooked = pastBookings.stream()
-                .anyMatch(b -> b.getItem().getId().equals(itemId));
+        boolean hasBooked = pastBookings.stream().anyMatch(b -> b.getItem().getId().equals(itemId));
 
         if (!hasBooked) {
             throw new RuntimeException("Пользователь не может оставить комментарий, так как не брал вещь в аренду.");
@@ -123,16 +118,11 @@ public class ItemService {
     private ItemDto toItemDtoWithDetails(Item item) {
         ItemDto dto = toItemDto(item);
 
-        List<CommentDto> comments = commentRepository.findByItem_IdOrderByCreatedDesc(item.getId())
-                .stream()
-                .map(this::toCommentDto)
-                .collect(Collectors.toList());
+        List<CommentDto> comments = commentRepository.findByItem_IdOrderByCreatedDesc(item.getId()).stream().map(this::toCommentDto).collect(Collectors.toList());
         dto.setComments(comments);
 
         List<Booking> allPastBookings = bookingRepository.findPastBookingsForItem(item.getId(), LocalDateTime.now());
-        List<Booking> approvedPastBookings = allPastBookings.stream()
-                .filter(b -> b.getStatus() == BookingStatus.APPROVED)
-                .collect(Collectors.toList());
+        List<Booking> approvedPastBookings = allPastBookings.stream().filter(b -> b.getStatus() == BookingStatus.APPROVED).collect(Collectors.toList());
         if (!approvedPastBookings.isEmpty()) {
             Booking lastBooking = approvedPastBookings.get(0);
             BookingShortDto lastDto = new BookingShortDto();
@@ -147,9 +137,7 @@ public class ItemService {
         }
 
         List<Booking> allFutureBookings = bookingRepository.findFutureBookingsForItem(item.getId(), LocalDateTime.now());
-        List<Booking> approvedFutureBookings = allFutureBookings.stream()
-                .filter(b -> b.getStatus() == BookingStatus.APPROVED)
-                .collect(Collectors.toList());
+        List<Booking> approvedFutureBookings = allFutureBookings.stream().filter(b -> b.getStatus() == BookingStatus.APPROVED).collect(Collectors.toList());
         if (!approvedFutureBookings.isEmpty()) {
             Booking nextBooking = approvedFutureBookings.get(0);
             BookingShortDto nextDto = new BookingShortDto();
