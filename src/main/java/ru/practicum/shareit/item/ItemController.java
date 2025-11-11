@@ -32,13 +32,13 @@ public class ItemController {
     }
 
     @PostMapping
-    public ResponseEntity<ItemDto> createItem(@RequestHeader("X-Sharer-User-Id") @Positive Long userId, @Valid @RequestBody ItemDto itemDto) { // @Valid
+    public ResponseEntity<ItemDto> createItem(@RequestHeader("X-Sharer-User-Id") @Positive Long userId, @Valid @RequestBody ItemDto itemDto) {
         ItemDto createdItemDto = itemService.createItem(userId, itemDto);
-        return ResponseEntity.status(201).body(createdItemDto); // 201 Created
+        return ResponseEntity.status(201).body(createdItemDto);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<ItemDto> updateItem(@RequestHeader("X-Sharer-User-Id") @Positive Long userId, @PathVariable @Positive Long id, @Valid @RequestBody ItemDto itemDto) { // @Valid
+    public ResponseEntity<ItemDto> updateItem(@RequestHeader("X-Sharer-User-Id") @Positive Long userId, @PathVariable @Positive Long id, @Valid @RequestBody ItemDto itemDto) {
         ItemDto updatedItemDto = itemService.updateItem(userId, id, itemDto);
         return ResponseEntity.ok(updatedItemDto);
     }
@@ -49,8 +49,8 @@ public class ItemController {
     }
 
     @PostMapping("/{itemId}/comment")
-    public ResponseEntity<CommentDto> addComment(@RequestHeader("X-Sharer-User-Id") @Positive Long userId, @PathVariable @Positive Long itemId, @Valid @RequestBody String text) { // @Valid
+    public ResponseEntity<CommentDto> addComment(@RequestHeader("X-Sharer-User-Id") @Positive Long userId, @PathVariable @Positive Long itemId, @RequestBody @Valid String text) {
         CommentDto commentDto = itemService.addComment(itemId, userId, text);
-        return ResponseEntity.status(201).body(commentDto); // 201 Created
+        return ResponseEntity.status(201).body(commentDto);
     }
 }

@@ -6,11 +6,11 @@ import jakarta.validation.constraints.NotBlank;
 public class UserDto {
     private Long id;
 
-    @NotBlank
+    @NotBlank(message = "User name cannot be blank")
     private String name;
 
-    @NotBlank
-    @Email
+    @NotBlank(message = "User email cannot be blank")
+    @Email(message = "User email must be a well-formed email address")
     private String email;
 
     public UserDto() {

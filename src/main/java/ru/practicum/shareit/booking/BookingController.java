@@ -39,9 +39,9 @@ public class BookingController {
     }
 
     @PostMapping
-    public ResponseEntity<BookingDto> createBooking(@RequestHeader("X-Sharer-User-Id") @Positive Long userId, @Valid @RequestBody BookingDto bookingDto) { // @Valid
+    public ResponseEntity<BookingDto> createBooking(@RequestHeader("X-Sharer-User-Id") @Positive Long userId, @Valid @RequestBody BookingDto bookingDto) {
         BookingDto createdBookingDto = bookingService.createBooking(userId, bookingDto);
-        return ResponseEntity.status(201).body(createdBookingDto); // 201 Created
+        return ResponseEntity.status(201).body(createdBookingDto);
     }
 
     @PatchMapping("/{bookingId}")

@@ -30,13 +30,13 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserDto userDto) { // @Valid
+    public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserDto userDto) {
         UserDto createdUserDto = userService.createUser(userDto);
-        return ResponseEntity.status(201).body(createdUserDto); // 201 Created
+        return ResponseEntity.status(201).body(createdUserDto);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<UserDto> updateUser(@PathVariable @Positive Long id, @Valid @RequestBody UserDto userDto) { // @Valid
+    public ResponseEntity<UserDto> updateUser(@PathVariable @Positive Long id, @Valid @RequestBody UserDto userDto) {
         UserDto updatedUserDto = userService.updateUser(id, userDto);
         return ResponseEntity.ok(updatedUserDto);
     }
@@ -44,6 +44,6 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable @Positive Long id) {
         userService.deleteUser(id);
-        return ResponseEntity.ok().build(); // 200 OK
+        return ResponseEntity.ok().build();
     }
 }

@@ -91,6 +91,10 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public CommentDto addComment(Long itemId, Long userId, String text) {
+        if (text == null || text.trim().isEmpty()) {
+            throw new IllegalArgumentException("Comment text cannot be blank");
+        }
+
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new IllegalArgumentException("Item not found with id: " + itemId));
 
         User author = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));

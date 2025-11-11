@@ -46,6 +46,10 @@ public class BookingServiceImpl implements BookingService {
             throw new IllegalArgumentException("Start date must be before end date.");
         }
 
+        if (bookingDto.getStart().equals(bookingDto.getEnd())) {
+            throw new IllegalArgumentException("Start date cannot be equal to end date.");
+        }
+
         if (bookingDto.getStart().isBefore(LocalDateTime.now()) || bookingDto.getEnd().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Start and end dates must be in the future.");
         }
