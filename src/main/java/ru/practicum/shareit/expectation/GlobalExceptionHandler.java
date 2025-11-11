@@ -1,4 +1,4 @@
-package ru.practicum.shareit.expectation;
+/*package ru.practicum.shareit.expectation;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -34,4 +34,4 @@ public class GlobalExceptionHandler {
     public ErrorResponse handleConflict(ConflictException e) {
         return new ErrorResponse(e.getMessage());
     }
-}
+} */

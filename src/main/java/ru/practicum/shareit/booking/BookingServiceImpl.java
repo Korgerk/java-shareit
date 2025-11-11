@@ -30,12 +30,16 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDto createBooking(Long userId, BookingDto bookingDto) {
-        User booker = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+        // Проверяем существование пользователя (booker)
+        User booker = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 
-        Item item = itemRepository.findById(bookingDto.getItemId()).orElseThrow(() -> new IllegalArgumentException("Item not found with id: " + bookingDto.getItemId()));
+        // Проверяем существование вещи
+        Item item = itemRepository.findById(bookingDto.getItemId())
+                .orElseThrow(() -> new IllegalArgumentException("Item not found with id: " + bookingDto.getItemId()));
 
         if (item.getOwner().getId().equals(userId)) {
-            throw new SecurityException("Owner cannot book their own item.");
+            throw new IllegalArgumentException("Owner cannot book their own item.");
         }
 
         if (!item.getAvailable()) {
