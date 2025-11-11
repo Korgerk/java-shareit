@@ -31,7 +31,7 @@ public class BookingService {
 
     public BookingDto create(BookingDto dto, Long userId) {
         User booker = userService.getById(userId);
-        Item item = itemRepository.findById(dto.getId()).orElseThrow(() -> new RuntimeException(String.format("Вещь с ID %d не найдена", dto.getId())));
+        Item item = itemRepository.findById(dto.getItemId()).orElseThrow(() -> new RuntimeException(String.format("Вещь с ID %d не найдена", dto.getItemId())));
 
         if (!item.getAvailable()) {
             throw new RuntimeException("Вещь недоступна для бронирования.");
@@ -168,7 +168,6 @@ public class BookingService {
         dto.setId(booking.getId());
         dto.setStart(booking.getStart());
         dto.setEnd(booking.getEnd());
-
         BookingItemDto itemDto = new BookingItemDto();
         itemDto.setId(booking.getItem().getId());
         itemDto.setName(booking.getItem().getName());
