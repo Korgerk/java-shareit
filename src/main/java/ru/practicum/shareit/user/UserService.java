@@ -1,37 +1,32 @@
 package ru.practicum.shareit.user;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.expectation.ConflictException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
+@RequiredArgsConstructor
+@Transactional
 public class UserService {
-    private final Map<Long, User> users = new HashMap<>();
-    private final AtomicLong idGenerator = new AtomicLong(1);
+    private final UserRepository userRepository;
 
     public User create(User user) {
         validate(user);
-        if (users.values().stream().anyMatch(u -> u.getEmail().equals(user.getEmail()))) {
+        if (userRepository.existsByEmailIgnoreCase(user.getEmail())) {
             throw new ConflictException("Email уже используется");
         }
-        user.setId(idGenerator.getAndIncrement());
-        users.put(user.getId(), user);
-        return user;
+        return userRepository.save(user);
     }
 
     public User update(Long id, User user) {
-        if (!users.containsKey(id)) {
-            throw new RuntimeException(String.format("Пользователь с ID %d не найден", id));
-        }
-        User existing = users.get(id);
+        User existing = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException(String.format("Пользователь с ID %d не найден", id)));
 
         if (user.getEmail() != null && !user.getEmail().isBlank()) {
-            if (!existing.getEmail().equals(user.getEmail()) && users.values().stream().anyMatch(u -> u.getEmail().equals(user.getEmail()))) {
+            if (!existing.getEmail().equals(user.getEmail()) && userRepository.existsByEmailIgnoreCase(user.getEmail())) {
                 throw new ConflictException("Email уже используется");
             }
             existing.setEmail(user.getEmail());
@@ -42,16 +37,19 @@ public class UserService {
         return existing;
     }
 
+    @Transactional(readOnly = true)
     public List<User> getAll() {
-        return new ArrayList<>(users.values());
+        return userRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public User getById(Long id) {
-        return users.get(id);
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
     }
 
     public void deleteById(Long id) {
-        users.remove(id);
+        userRepository.deleteById(id);
     }
 
     private void validate(User user) {
@@ -66,7 +64,13 @@ public class UserService {
         }
     }
 
+    @Transactional(readOnly = true)
     public boolean existsById(Long id) {
-        return users.containsKey(id);
+        return userRepository.existsById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean existsByEmailIgnoreCase(String email) {
+        return userRepository.existsByEmailIgnoreCase(email);
     }
 }

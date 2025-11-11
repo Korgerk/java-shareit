@@ -1,51 +1,53 @@
 package ru.practicum.shareit.item;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.BookingRepository;
+import ru.practicum.shareit.booking.dto.BookingShortDto;
 import ru.practicum.shareit.expectation.AccessDeniedException;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserService;
 
-import java.util.HashMap;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
+@Transactional
 public class ItemService {
-
-    private final Map<Long, Item> items = new HashMap<>();
-    private final AtomicLong idGenerator = new AtomicLong(1);
+    private final ItemRepository itemRepository;
     private final UserService userService;
-
-    public ItemService(UserService userService) {
-        this.userService = userService;
-    }
+    private final BookingRepository bookingRepository;
+    private final CommentRepository commentRepository;
 
     public ItemDto create(ItemDto dto, Long userId) {
         validate(dto);
-        if (!userService.existsById(userId)) {
-            throw new RuntimeException(String.format("Пользователь с ID %d не найден", userId));
-        }
+        User owner = userService.getById(userId); // Throws if not found
+
         Item item = new Item();
         item.setName(dto.getName());
         item.setDescription(dto.getDescription());
         item.setAvailable(dto.getAvailable());
-        item.setOwnerId(userId);
-        item.setId(idGenerator.getAndIncrement());
-        items.put(item.getId(), item);
+        item.setOwner(owner);
+        item = itemRepository.save(item);
         return toItemDto(item);
     }
 
     public ItemDto update(Long itemId, ItemDto dto, Long userId) {
-        if (!items.containsKey(itemId)) {
-            throw new RuntimeException(String.format("Пользователь с ID %d не найден", itemId));
-        }
-        Item item = items.get(itemId);
-        if (!item.getOwnerId().equals(userId)) {
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new RuntimeException(String.format("Вещь с ID %d не найдена", itemId)));
+
+        if (!item.getOwner().getId().equals(userId)) {
             throw new AccessDeniedException(String.format("Пользователь %d не является владельцем вещи %d", userId, itemId));
         }
+
         if (dto.getName() != null && !dto.getName().isBlank()) {
             item.setName(dto.getName());
         }
@@ -55,28 +57,53 @@ public class ItemService {
         if (dto.getAvailable() != null) {
             item.setAvailable(dto.getAvailable());
         }
+        item = itemRepository.save(item);
         return toItemDto(item);
     }
 
+    @Transactional(readOnly = true)
     public ItemDto getById(Long id) {
-        Item item = items.get(id);
-        if (item == null) throw new RuntimeException("Вещь не найдена");
-        return toItemDto(item);
+        Item item = itemRepository.findById(id).orElseThrow(() -> new RuntimeException("Вещь не найдена"));
+        return toItemDtoWithDetails(item);
     }
 
+    @Transactional(readOnly = true)
     public List<ItemDto> getOwnerItems(Long userId) {
-        if (!userService.existsById(userId)) {
-            throw new RuntimeException(String.format("Пользователь с ID %d не найден", userId));
-        }
-        return items.values().stream().filter(item -> item.getOwnerId().equals(userId)).map(this::toItemDto).collect(Collectors.toList());
+        userService.getById(userId); // Validate user exists
+        List<Item> items = itemRepository.findByOwner_Id(userId, PageRequest.of(0, 1000)).getContent(); // Assuming max 1000 items per user for simplicity
+        return items.stream().map(this::toItemDtoWithDetails).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<ItemDto> search(String text) {
         if (text == null || text.isBlank()) {
             return List.of();
         }
-        String query = text.toLowerCase();
-        return items.values().stream().filter(Item::getAvailable).filter(item -> item.getName().toLowerCase().contains(query) || item.getDescription().toLowerCase().contains(query)).map(this::toItemDto).collect(Collectors.toList());
+        List<Item> items = itemRepository.search(text);
+        return items.stream().map(this::toItemDto).collect(Collectors.toList());
+    }
+
+    public CommentDto addComment(Long itemId, Long userId, Comment commentDto) {
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new RuntimeException(String.format("Вещь с ID %d не найдена", itemId)));
+
+        User author = userService.getById(userId);
+
+        // Check if user has booked the item and the booking is in the past
+        List<Booking> pastBookings = bookingRepository.findPastBookingsByBooker(userId, LocalDateTime.now());
+        boolean hasBooked = pastBookings.stream().anyMatch(b -> b.getItem().getId().equals(itemId));
+
+        if (!hasBooked) {
+            throw new RuntimeException("Пользователь не может оставить комментарий, так как не брал вещь в аренду.");
+        }
+
+        Comment comment = new Comment();
+        comment.setText(commentDto.getText());
+        comment.setItem(item);
+        comment.setAuthor(author);
+        comment.setCreated(LocalDateTime.now());
+
+        comment = commentRepository.save(comment);
+        return toCommentDto(comment);
     }
 
     private ItemDto toItemDto(Item item) {
@@ -85,6 +112,52 @@ public class ItemService {
         dto.setName(item.getName());
         dto.setDescription(item.getDescription());
         dto.setAvailable(item.getAvailable());
+        // lastBooking, nextBooking, comments are not populated here
+        return dto;
+    }
+
+    private ItemDto toItemDtoWithDetails(Item item) {
+        ItemDto dto = toItemDto(item);
+
+        // Fetch comments
+        List<CommentDto> comments = commentRepository.findByItem_IdOrderByCreatedDesc(item.getId()).stream().map(this::toCommentDto).collect(Collectors.toList());
+        dto.setComments(comments);
+
+        // Fetch bookings for last/next only if owner is viewing
+        // For simplicity, we fetch them always here. In a real app, you'd check the viewer's role.
+        List<Booking> pastBookings = bookingRepository.findPastBookingsForItem(item.getId(), LocalDateTime.now());
+        if (!pastBookings.isEmpty()) {
+            Booking lastBooking = pastBookings.get(0); // Sorted DESC, first is last
+            BookingShortDto lastDto = new BookingShortDto();
+            lastDto.setId(lastBooking.getId());
+            lastDto.setStart(lastBooking.getStart());
+            lastDto.setEnd(lastBooking.getEnd());
+            lastDto.setBookerId(lastBooking.getBooker().getId());
+            lastDto.setStatus(lastBooking.getStatus().toString());
+            dto.setLastBooking(lastDto);
+        }
+
+        List<Booking> futureBookings = bookingRepository.findFutureBookingsForItem(item.getId(), LocalDateTime.now());
+        if (!futureBookings.isEmpty()) {
+            Booking nextBooking = futureBookings.get(0); // Sorted ASC, first is next
+            BookingShortDto nextDto = new BookingShortDto();
+            nextDto.setId(nextBooking.getId());
+            nextDto.setStart(nextBooking.getStart());
+            nextDto.setEnd(nextBooking.getEnd());
+            nextDto.setBookerId(nextBooking.getBooker().getId());
+            nextDto.setStatus(nextBooking.getStatus().toString());
+            dto.setNextBooking(nextDto);
+        }
+
+        return dto;
+    }
+
+    private CommentDto toCommentDto(Comment comment) {
+        CommentDto dto = new CommentDto();
+        dto.setId(comment.getId());
+        dto.setText(comment.getText());
+        dto.setAuthorName(comment.getAuthor().getName());
+        dto.setCreated(comment.getCreated());
         return dto;
     }
 
