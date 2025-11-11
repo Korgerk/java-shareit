@@ -1,20 +1,17 @@
 package ru.practicum.shareit.item;
 
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,7 +37,7 @@ public class ItemServiceImpl implements ItemService {
         Item item = new Item(itemDto.getName(), itemDto.getDescription(), itemDto.getAvailable(), owner);
         item.setRequestId(itemDto.getRequestId());
         Item savedItem = itemRepository.save(item);
-        return mapToItemDto(savedItem, false, userId);
+        return mapToItemDto(savedItem);
     }
 
     @Override
@@ -65,28 +62,49 @@ public class ItemServiceImpl implements ItemService {
         }
 
         Item updatedItem = itemRepository.save(existingItem);
-        return mapToItemDto(updatedItem, false, userId);
+        return mapToItemDto(updatedItem);
     }
 
     @Override
     public ItemDto getItemById(Long userId, Long itemId) {
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new IllegalArgumentException("Item not found with id: " + itemId));
-        return mapToItemDto(item, true, userId);
-    }
 
-    @Override
-    public List<ItemDto> getAllItems(Long userId, Integer from, Integer size) {
-        Pageable pageable = PageRequest.of(from / size, size, Sort.by("id").ascending());
-        return itemRepository.findByOwnerId(userId, pageable).stream().map(item -> mapToItemDto(item, true, userId)).collect(Collectors.toList());
-    }
+        ItemDto itemDto = mapToItemDto(item);
+        // Загрузка бронирований и комментариев только для владельца
+        if (item.getOwner().getId().equals(userId)) {
+            List<Booking> pastBookings = bookingRepository.findLastBookingsByItem(itemId, LocalDateTime.now());
+            if (!pastBookings.isEmpty()) {
+                Booking lastBooking = pastBookings.get(0);
+                // Assuming you have a BookingShortDto and a mapping method
+                // itemDto.setLastBooking(mapToBookingShortDto(lastBooking));
+            }
 
-    @Override
-    public List<ItemDto> searchItems(String text, Integer from, Integer size) {
-        if (text == null || text.trim().isEmpty()) {
-            return new ArrayList<>();
+            List<Booking> futureBookings = bookingRepository.findNextBookingsByItem(itemId, LocalDateTime.now());
+            if (!futureBookings.isEmpty()) {
+                Booking nextBooking = futureBookings.get(0);
+                // itemDto.setNextBooking(mapToBookingShortDto(nextBooking));
+            }
         }
-        Pageable pageable = PageRequest.of(from / size, size, Sort.by("id").ascending());
-        return itemRepository.findAll(pageable).stream().filter(item -> item.getAvailable() && item.getName().toLowerCase().contains(text.toLowerCase())).map(this::mapToItemDtoWithoutBookings).collect(Collectors.toList());
+
+        List<CommentDto> commentDtos = commentRepository.findByItemId(itemId).stream().map(this::mapToCommentDto).collect(Collectors.toList());
+        itemDto.setComments(commentDtos);
+
+        return itemDto;
+    }
+
+    @Override
+    public List<ItemDto> getAllItems(Long userId) {
+        User owner = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+        List<Item> items = itemRepository.findByOwnerId(owner.getId());
+        return items.stream().map(this::mapToItemDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ItemDto> searchItems(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return List.of();
+        }
+        return itemRepository.searchByText(text).stream().map(this::mapToItemDto).collect(Collectors.toList());
     }
 
     @Override
@@ -116,7 +134,7 @@ public class ItemServiceImpl implements ItemService {
         return mapToCommentDto(savedComment);
     }
 
-    private ItemDto mapToItemDto(Item item, boolean includeBookings, Long userId) {
+    private ItemDto mapToItemDto(Item item) {
         ItemDto itemDto = new ItemDto();
         itemDto.setId(item.getId());
         itemDto.setName(item.getName());
@@ -124,49 +142,6 @@ public class ItemServiceImpl implements ItemService {
         itemDto.setAvailable(item.getAvailable());
         itemDto.setOwnerId(item.getOwner().getId());
         itemDto.setRequestId(item.getRequestId());
-
-        if (includeBookings && item.getOwner().getId().equals(userId)) {
-            List<Booking> pastBookings = bookingRepository.findLastBookingsByItem(item.getId(), LocalDateTime.now());
-            if (!pastBookings.isEmpty()) {
-                Booking lastBooking = pastBookings.get(0);
-                ru.practicum.shareit.booking.dto.BookingShortDto lastBookingDto = new ru.practicum.shareit.booking.dto.BookingShortDto();
-                lastBookingDto.setId(lastBooking.getId());
-                lastBookingDto.setStart(lastBooking.getStart());
-                lastBookingDto.setEnd(lastBooking.getEnd());
-                lastBookingDto.setBookerId(lastBooking.getBooker().getId());
-                lastBookingDto.setStatus(lastBooking.getStatus());
-                itemDto.setLastBooking(lastBookingDto);
-            }
-
-            List<Booking> futureBookings = bookingRepository.findNextBookingsByItem(item.getId(), LocalDateTime.now());
-            if (!futureBookings.isEmpty()) {
-                Booking nextBooking = futureBookings.get(0);
-                ru.practicum.shareit.booking.dto.BookingShortDto nextBookingDto = new ru.practicum.shareit.booking.dto.BookingShortDto();
-                nextBookingDto.setId(nextBooking.getId());
-                nextBookingDto.setStart(nextBooking.getStart());
-                nextBookingDto.setEnd(nextBooking.getEnd());
-                nextBookingDto.setBookerId(nextBooking.getBooker().getId());
-                nextBookingDto.setStatus(nextBooking.getStatus());
-                itemDto.setNextBooking(nextBookingDto);
-            }
-        }
-
-        List<CommentDto> commentDtos = commentRepository.findByItemId(item.getId()).stream().map(this::mapToCommentDto).collect(Collectors.toList());
-        itemDto.setComments(commentDtos);
-
-        return itemDto;
-    }
-
-    private ItemDto mapToItemDtoWithoutBookings(Item item) {
-        ItemDto itemDto = new ItemDto();
-        itemDto.setId(item.getId());
-        itemDto.setName(item.getName());
-        itemDto.setDescription(item.getDescription());
-        itemDto.setAvailable(item.getAvailable());
-        itemDto.setOwnerId(item.getOwner().getId());
-        itemDto.setRequestId(item.getRequestId());
-        List<CommentDto> commentDtos = commentRepository.findByItemId(item.getId()).stream().map(this::mapToCommentDto).collect(Collectors.toList());
-        itemDto.setComments(commentDtos);
         return itemDto;
     }
 

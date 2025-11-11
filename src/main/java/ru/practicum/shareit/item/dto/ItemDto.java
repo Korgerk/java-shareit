@@ -2,9 +2,6 @@ package ru.practicum.shareit.item.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import ru.practicum.shareit.booking.dto.BookingShortDto;
-
-import java.util.List;
 
 public class ItemDto {
     private Long id;
@@ -20,9 +17,6 @@ public class ItemDto {
 
     private Long ownerId;
     private Long requestId;
-    private BookingShortDto lastBooking;
-    private BookingShortDto nextBooking;
-    private List<CommentDto> comments;
 
     public ItemDto() {
     }
@@ -34,6 +28,7 @@ public class ItemDto {
         this.ownerId = ownerId;
     }
 
+    // getters and setters
     public Long getId() {
         return id;
     }
@@ -80,29 +75,5 @@ public class ItemDto {
 
     public void setRequestId(Long requestId) {
         this.requestId = requestId;
-    }
-
-    public BookingShortDto getLastBooking() {
-        return lastBooking;
-    }
-
-    public void setLastBooking(BookingShortDto lastBooking) {
-        this.lastBooking = lastBooking;
-    }
-
-    public BookingShortDto getNextBooking() {
-        return nextBooking;
-    }
-
-    public void setNextBooking(BookingShortDto nextBooking) {
-        this.nextBooking = nextBooking;
-    }
-
-    public List<CommentDto> getComments() {
-        return comments;
-    }
-
-    public void setComments(List<CommentDto> comments) {
-        this.comments = comments;
     }
 }

@@ -1,8 +1,6 @@
 package ru.practicum.shareit.item.model;
 
-
 import jakarta.persistence.*;
-import ru.practicum.shareit.item.Comment;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
@@ -43,6 +41,7 @@ public class Item {
         this.owner = owner;
     }
 
+    // getters and setters
     public Long getId() {
         return id;
     }

@@ -2,7 +2,6 @@ package ru.practicum.shareit.booking;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingState;
@@ -30,16 +29,12 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDto createBooking(Long userId, BookingDto bookingDto) {
-        // Проверяем существование пользователя (booker)
-        User booker = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+        User booker = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 
-        // Проверяем существование вещи
-        Item item = itemRepository.findById(bookingDto.getItemId())
-                .orElseThrow(() -> new IllegalArgumentException("Item not found with id: " + bookingDto.getItemId()));
+        Item item = itemRepository.findById(bookingDto.getItemId()).orElseThrow(() -> new IllegalArgumentException("Item not found with id: " + bookingDto.getItemId()));
 
         if (item.getOwner().getId().equals(userId)) {
-            throw new IllegalArgumentException("Owner cannot book their own item.");
+            throw new SecurityException("Owner cannot book their own item.");
         }
 
         if (!item.getAvailable()) {
@@ -98,7 +93,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> getAllBookingsByUser(Long userId, BookingState state, Integer from, Integer size) {
-        Pageable pageable = PageRequest.of(from / size, size, Sort.by("start").descending());
+        Pageable pageable = PageRequest.of(from / size, size);
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 
         List<Booking> bookings;
         LocalDateTime now = LocalDateTime.now();
@@ -131,7 +127,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> getAllBookingsByOwnerItems(Long userId, BookingState state, Integer from, Integer size) {
-        Pageable pageable = PageRequest.of(from / size, size, Sort.by("start").descending());
+        Pageable pageable = PageRequest.of(from / size, size);
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 
         List<Booking> bookings;
         LocalDateTime now = LocalDateTime.now();

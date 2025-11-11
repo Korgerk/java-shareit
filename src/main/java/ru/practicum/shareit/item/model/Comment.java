@@ -1,8 +1,6 @@
-package ru.practicum.shareit.item;
-
+package ru.practicum.shareit.item.model;
 
 import jakarta.persistence.*;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
@@ -38,6 +36,7 @@ public class Comment {
         this.created = created;
     }
 
+    // getters and setters
     public Long getId() {
         return id;
     }

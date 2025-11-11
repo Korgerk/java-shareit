@@ -29,6 +29,7 @@ public class BookingDto {
     public BookingDto() {
     }
 
+    // getters and setters
     public Long getId() {
         return id;
     }

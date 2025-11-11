@@ -2,7 +2,6 @@ package ru.practicum.shareit.item;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -21,14 +20,14 @@ public class ItemController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ItemDto> getItem(@PathVariable @Positive Long id, @RequestHeader("X-Sharer-User-Id") @Positive Long userId) {
+    public ResponseEntity<ItemDto> getItem(@PathVariable Long id, @RequestHeader("X-Sharer-User-Id") @Positive Long userId) {
         ItemDto itemDto = itemService.getItemById(userId, id);
         return ResponseEntity.ok(itemDto);
     }
 
     @GetMapping
-    public List<ItemDto> getAllItems(@RequestHeader("X-Sharer-User-Id") @Positive Long userId, @RequestParam(defaultValue = "0") @PositiveOrZero Integer from, @RequestParam(defaultValue = "10") @Positive Integer size) {
-        return itemService.getAllItems(userId, from, size);
+    public List<ItemDto> getAllItems(@RequestHeader("X-Sharer-User-Id") @Positive Long userId) {
+        return itemService.getAllItems(userId);
     }
 
     @PostMapping
@@ -44,12 +43,12 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemDto> searchItems(@RequestParam String text, @RequestParam(defaultValue = "0") @PositiveOrZero Integer from, @RequestParam(defaultValue = "10") @Positive Integer size) {
-        return itemService.searchItems(text, from, size);
+    public List<ItemDto> searchItems(@RequestParam String text) {
+        return itemService.searchItems(text);
     }
 
     @PostMapping("/{itemId}/comment")
-    public ResponseEntity<CommentDto> addComment(@RequestHeader("X-Sharer-User-Id") @Positive Long userId, @PathVariable @Positive Long itemId, @RequestBody @Valid String text) {
+    public ResponseEntity<CommentDto> addComment(@RequestHeader("X-Sharer-User-Id") @Positive Long userId, @PathVariable @Positive Long itemId, @Valid @RequestBody String text) {
         CommentDto commentDto = itemService.addComment(itemId, userId, text);
         return ResponseEntity.status(201).body(commentDto);
     }

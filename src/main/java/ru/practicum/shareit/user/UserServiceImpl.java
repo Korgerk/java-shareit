@@ -29,11 +29,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto updateUser(Long userId, UserDto userDto) {
-        // Проверяем, что пользователь, которого обновляем, существует
         User existingUser = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 
         if (userDto.getEmail() != null) {
-            // Проверка уникальности email при обновлении (если он меняется)
             if (!userDto.getEmail().equals(existingUser.getEmail()) && userRepository.existsByEmail(userDto.getEmail())) {
                 throw new IllegalArgumentException("Email already exists: " + userDto.getEmail());
             }

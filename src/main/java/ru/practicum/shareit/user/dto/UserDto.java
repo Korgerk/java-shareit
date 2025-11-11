@@ -21,6 +21,7 @@ public class UserDto {
         this.email = email;
     }
 
+    // getters and setters
     public Long getId() {
         return id;
     }

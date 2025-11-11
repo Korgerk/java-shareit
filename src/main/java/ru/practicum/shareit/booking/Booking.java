@@ -1,7 +1,5 @@
 package ru.practicum.shareit.booking;
 
-
-
 import jakarta.persistence.*;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
@@ -44,6 +42,7 @@ public class Booking {
         this.status = status;
     }
 
+    // getters and setters
     public Long getId() {
         return id;
     }

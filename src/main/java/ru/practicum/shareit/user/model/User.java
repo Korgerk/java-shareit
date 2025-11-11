@@ -23,6 +23,7 @@ public class User {
         this.email = email;
     }
 
+    // getters and setters
     public Long getId() {
         return id;
     }

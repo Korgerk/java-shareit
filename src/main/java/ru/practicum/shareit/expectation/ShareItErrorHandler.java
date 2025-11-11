@@ -12,7 +12,6 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import java.sql.SQLException;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 @RestControllerAdvice
 public class ShareItErrorHandler {
@@ -39,11 +38,6 @@ public class ShareItErrorHandler {
     }
 
     @ExceptionHandler
-    public ResponseEntity<Map<String, String>> handleNoSuchElementException(NoSuchElementException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
-    }
-
-    @ExceptionHandler
     public ResponseEntity<Map<String, String>> handleMissingRequestHeaderException(MissingRequestHeaderException e) {
         return ResponseEntity.badRequest().body(Map.of("error", "Required header '" + e.getHeaderName() + "' is missing"));
     }
@@ -58,23 +52,20 @@ public class ShareItErrorHandler {
 
     @ExceptionHandler
     public ResponseEntity<Map<String, String>> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
-        Throwable cause = e.getCause();
+        Throwable cause = e.getRootCause();
         if (cause instanceof SQLException) {
             SQLException sqlEx = (SQLException) cause;
-            String sqlState = sqlEx.getSQLState();
             String message = sqlEx.getMessage();
-
-
-            if (message != null && message.contains("users_email_key")) {
+            if (message != null && message.contains("users_email_key")) { // Имя ограничения может отличаться, проверьте schema.sql и БД
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Email already exists"));
             }
         }
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Data integrity violation"));
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Data integrity violation: " + e.getMessage()));
     }
 
     @ExceptionHandler
     public ResponseEntity<Map<String, String>> handleGeneralException(Exception e) {
-        e.printStackTrace();
+        e.printStackTrace(); // Логируйте для отладки
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "An unexpected error occurred"));
     }
 }
