@@ -19,10 +19,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("SELECT b FROM Booking b WHERE b.item.id = :itemId AND b.start < :now AND b.end > :now")
     List<Booking> findCurrentBookingsForItem(@Param("itemId") Long itemId, @Param("now") LocalDateTime now);
 
-    @Query("SELECT b FROM Booking b WHERE b.item.id = :itemId AND b.start > :now AND b.status = 'APPROVED' ORDER BY b.start ASC")
+    @Query("SELECT b FROM Booking b WHERE b.item.id = :itemId AND b.start > :now ORDER BY b.start ASC")
     List<Booking> findFutureBookingsForItem(@Param("itemId") Long itemId, @Param("now") LocalDateTime now);
 
-    @Query("SELECT b FROM Booking b WHERE b.item.id = :itemId AND b.end < :now AND b.status = 'APPROVED' ORDER BY b.end DESC")
+    @Query("SELECT b FROM Booking b WHERE b.item.id = :itemId AND b.end < :now ORDER BY b.end DESC")
     List<Booking> findPastBookingsForItem(@Param("itemId") Long itemId, @Param("now") LocalDateTime now);
 
     @Query("SELECT b FROM Booking b WHERE b.booker.id = :userId AND b.start < :now AND b.end > :now")
@@ -42,6 +42,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query("SELECT b FROM Booking b WHERE b.item.owner.id = :userId AND b.end < :now")
     List<Booking> findPastBookingsByOwner(@Param("userId") Long userId, @Param("now") LocalDateTime now);
+
+    @Query("SELECT b FROM Booking b WHERE b.item.id = :itemId AND b.end < :now AND b.status = 'APPROVED' ORDER BY b.end DESC")
+    List<Booking> findApprovedPastBookingsForItem(@Param("itemId") Long itemId, @Param("now") LocalDateTime now);
 
     Page<Booking> findByBooker_IdAndStatusOrderByStartDesc(Long userId, BookingStatus status, Pageable pageable);
 
