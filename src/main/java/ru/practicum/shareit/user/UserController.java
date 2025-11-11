@@ -1,7 +1,10 @@
 package ru.practicum.shareit.user;
 
-import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.List;
 
@@ -15,32 +18,32 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public User create(@RequestBody User user) {
-        return userService.create(user);
-    }
-
-    @PatchMapping("/{id}")
-    public User update(@PathVariable Long id, @RequestBody User user) {
-        return userService.update(id, user);
+    @GetMapping("/{id}")
+    public ResponseEntity<UserDto> getUser(@PathVariable @Positive Long id) {
+        UserDto userDto = userService.getUserById(id);
+        return ResponseEntity.ok(userDto);
     }
 
     @GetMapping
-    public List<User> getAll() {
-        return userService.getAll();
+    public List<UserDto> getAllUsers() {
+        return userService.getAllUsers();
     }
 
-    @GetMapping("/{id}")
-    public User getById(@PathVariable Long id) {
-        User user = userService.getById(id);
-        if (user == null) throw new RuntimeException("Пользователь не найден");
-        return user;
+    @PostMapping
+    public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserDto userDto) { // @Valid
+        UserDto createdUserDto = userService.createUser(userDto);
+        return ResponseEntity.status(201).body(createdUserDto); // 201 Created
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<UserDto> updateUser(@PathVariable @Positive Long id, @Valid @RequestBody UserDto userDto) { // @Valid
+        UserDto updatedUserDto = userService.updateUser(id, userDto);
+        return ResponseEntity.ok(updatedUserDto);
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
-        userService.deleteById(id);
+    public ResponseEntity<Void> deleteUser(@PathVariable @Positive Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.ok().build(); // 200 OK
     }
 }
