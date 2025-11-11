@@ -12,6 +12,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @RestControllerAdvice
 public class ShareItErrorHandler {
@@ -29,12 +30,20 @@ public class ShareItErrorHandler {
 
     @ExceptionHandler
     public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException e) {
+        if (e.getMessage() != null && e.getMessage().toLowerCase().contains("not found")) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        }
         return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
     }
 
     @ExceptionHandler
     public ResponseEntity<Map<String, String>> handleSecurityException(SecurityException e) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> handleNoSuchElementException(NoSuchElementException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
     }
 
     @ExceptionHandler
@@ -52,7 +61,7 @@ public class ShareItErrorHandler {
 
     @ExceptionHandler
     public ResponseEntity<Map<String, String>> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
-        Throwable cause = e.getRootCause();
+        Throwable cause = e.getCause();
         if (cause instanceof SQLException) {
             SQLException sqlEx = (SQLException) cause;
             String message = sqlEx.getMessage();
