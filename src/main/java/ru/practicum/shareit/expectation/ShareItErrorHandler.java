@@ -56,7 +56,7 @@ public class ShareItErrorHandler {
         if (cause instanceof SQLException) {
             SQLException sqlEx = (SQLException) cause;
             String message = sqlEx.getMessage();
-            if (message != null && message.contains("users_email_key")) { // Имя ограничения может отличаться, проверьте schema.sql и БД
+            if (message != null && message.contains("users_email_key")) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Email already exists"));
             }
         }
@@ -65,7 +65,7 @@ public class ShareItErrorHandler {
 
     @ExceptionHandler
     public ResponseEntity<Map<String, String>> handleGeneralException(Exception e) {
-        e.printStackTrace(); // Логируйте для отладки
+        e.printStackTrace();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "An unexpected error occurred"));
     }
 }

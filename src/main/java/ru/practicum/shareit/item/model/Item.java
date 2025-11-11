@@ -41,7 +41,6 @@ public class Item {
         this.owner = owner;
     }
 
-    // getters and setters
     public Long getId() {
         return id;
     }

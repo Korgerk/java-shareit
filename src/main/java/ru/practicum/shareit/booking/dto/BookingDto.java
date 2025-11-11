@@ -26,10 +26,11 @@ public class BookingDto {
 
     private BookingStatus status;
 
+    private Long bookerId;
+
     public BookingDto() {
     }
 
-    // getters and setters
     public Long getId() {
         return id;
     }
@@ -68,5 +69,13 @@ public class BookingDto {
 
     public void setStatus(BookingStatus status) {
         this.status = status;
+    }
+
+    public Long getBookerId() {
+        return bookerId;
+    }
+
+    public void setBookerId(Long bookerId) {
+        this.bookerId = bookerId;
     }
 }

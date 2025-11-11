@@ -1,8 +1,20 @@
 package ru.practicum.shareit.item.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import ru.practicum.shareit.booking.dto.BookingShortDto;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ItemDto {
     private Long id;
 
@@ -17,63 +29,27 @@ public class ItemDto {
 
     private Long ownerId;
     private Long requestId;
+    private BookingShortDto lastBooking;
+    private BookingShortDto nextBooking;
+    private List<CommentDto> comments;
 
-    public ItemDto() {
-    }
-
-    public ItemDto(String name, String description, Boolean available, Long ownerId) {
-        this.name = name;
-        this.description = description;
-        this.available = available;
-        this.ownerId = ownerId;
-    }
-
-    // getters and setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Boolean getAvailable() {
-        return available;
-    }
-
-    public void setAvailable(Boolean available) {
-        this.available = available;
-    }
-
-    public Long getOwnerId() {
-        return ownerId;
-    }
-
+    @JsonIgnore
     public void setOwnerId(Long ownerId) {
         this.ownerId = ownerId;
     }
 
-    public Long getRequestId() {
-        return requestId;
+    @JsonIgnore
+    public void setLastBooking(BookingShortDto lastBooking) {
+        this.lastBooking = lastBooking;
     }
 
-    public void setRequestId(Long requestId) {
-        this.requestId = requestId;
+    @JsonIgnore
+    public void setNextBooking(BookingShortDto nextBooking) {
+        this.nextBooking = nextBooking;
+    }
+
+    @JsonIgnore
+    public void setComments(List<CommentDto> comments) {
+        this.comments = comments;
     }
 }

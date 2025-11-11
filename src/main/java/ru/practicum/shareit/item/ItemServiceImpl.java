@@ -1,9 +1,13 @@
 package ru.practicum.shareit.item;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingStatus;
+import ru.practicum.shareit.booking.dto.BookingShortDto;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Comment;
@@ -70,19 +74,23 @@ public class ItemServiceImpl implements ItemService {
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new IllegalArgumentException("Item not found with id: " + itemId));
 
         ItemDto itemDto = mapToItemDto(item);
-        // Загрузка бронирований и комментариев только для владельца
+
         if (item.getOwner().getId().equals(userId)) {
-            List<Booking> pastBookings = bookingRepository.findLastBookingsByItem(itemId, LocalDateTime.now());
+            Pageable limitOne = PageRequest.of(0, 1, Sort.by("start").descending());
+            Pageable limitOneAsc = PageRequest.of(0, 1, Sort.by("start").ascending());
+
+            List<Booking> pastBookings = bookingRepository.findLastBookingsByItem(item.getId(), List.of(BookingStatus.APPROVED), LocalDateTime.now(), limitOne).getContent(); // .getContent() извлекает List<T> из Page<T>
+
             if (!pastBookings.isEmpty()) {
                 Booking lastBooking = pastBookings.get(0);
-                // Assuming you have a BookingShortDto and a mapping method
-                // itemDto.setLastBooking(mapToBookingShortDto(lastBooking));
+                itemDto.setLastBooking(mapToBookingShortDto(lastBooking));
             }
 
-            List<Booking> futureBookings = bookingRepository.findNextBookingsByItem(itemId, LocalDateTime.now());
+            List<Booking> futureBookings = bookingRepository.findNextBookingsByItem(item.getId(), List.of(BookingStatus.APPROVED), LocalDateTime.now(), limitOneAsc).getContent(); // .getContent() извлекает List<T> из Page<T>
+
             if (!futureBookings.isEmpty()) {
                 Booking nextBooking = futureBookings.get(0);
-                // itemDto.setNextBooking(mapToBookingShortDto(nextBooking));
+                itemDto.setNextBooking(mapToBookingShortDto(nextBooking));
             }
         }
 
@@ -96,7 +104,32 @@ public class ItemServiceImpl implements ItemService {
     public List<ItemDto> getAllItems(Long userId) {
         User owner = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
         List<Item> items = itemRepository.findByOwnerId(owner.getId());
-        return items.stream().map(this::mapToItemDto).collect(Collectors.toList());
+
+        return items.stream().map(item -> {
+            ItemDto itemDto = mapToItemDto(item);
+
+            Pageable limitOne = PageRequest.of(0, 1, Sort.by("start").descending());
+            Pageable limitOneAsc = PageRequest.of(0, 1, Sort.by("start").ascending());
+
+            List<Booking> pastBookings = bookingRepository.findLastBookingsByItem(item.getId(), List.of(BookingStatus.APPROVED), LocalDateTime.now(), limitOne).getContent();
+
+            if (!pastBookings.isEmpty()) {
+                Booking lastBooking = pastBookings.get(0);
+                itemDto.setLastBooking(mapToBookingShortDto(lastBooking));
+            }
+
+            List<Booking> futureBookings = bookingRepository.findNextBookingsByItem(item.getId(), List.of(BookingStatus.APPROVED), LocalDateTime.now(), limitOneAsc).getContent();
+
+            if (!futureBookings.isEmpty()) {
+                Booking nextBooking = futureBookings.get(0);
+                itemDto.setNextBooking(mapToBookingShortDto(nextBooking));
+            }
+
+            List<CommentDto> commentDtos = commentRepository.findByItemId(item.getId()).stream().map(this::mapToCommentDto).collect(Collectors.toList());
+            itemDto.setComments(commentDtos);
+
+            return itemDto;
+        }).collect(Collectors.toList());
     }
 
     @Override
@@ -104,7 +137,9 @@ public class ItemServiceImpl implements ItemService {
         if (text == null || text.trim().isEmpty()) {
             return List.of();
         }
-        return itemRepository.searchByText(text).stream().map(this::mapToItemDto).collect(Collectors.toList());
+        List<Item> items = itemRepository.searchByText(text);
+        return items.stream().map(this::mapToItemDto)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -121,12 +156,12 @@ public class ItemServiceImpl implements ItemService {
             throw new SecurityException("Owner cannot leave a comment on their own item.");
         }
 
-        List<Booking> pastBookings = bookingRepository.findByItemAndStatusInOrderByStartDesc(item, List.of(BookingStatus.APPROVED)).stream().filter(booking -> booking.getEnd().isBefore(LocalDateTime.now())).collect(Collectors.toList());
+        List<Booking> approvedPastBookings = bookingRepository.findByItemAndBookerAndStatusInAndEndIsBefore(item, userId, // bookerId
+                List.of(BookingStatus.APPROVED), LocalDateTime.now() // now
+        );
 
-        boolean hasPastBooking = pastBookings.stream().anyMatch(booking -> booking.getBooker().getId().equals(userId));
-
-        if (!hasPastBooking) {
-            throw new IllegalStateException("User has not booked this item before.");
+        if (approvedPastBookings.isEmpty()) {
+            throw new IllegalStateException("User has not booked this item before or has no approved past bookings.");
         }
 
         Comment comment = new Comment(text, item, author, LocalDateTime.now());
@@ -143,6 +178,16 @@ public class ItemServiceImpl implements ItemService {
         itemDto.setOwnerId(item.getOwner().getId());
         itemDto.setRequestId(item.getRequestId());
         return itemDto;
+    }
+
+    private BookingShortDto mapToBookingShortDto(Booking booking) {
+        BookingShortDto dto = new BookingShortDto();
+        dto.setId(booking.getId());
+        dto.setStart(booking.getStart());
+        dto.setEnd(booking.getEnd());
+        dto.setBookerId(booking.getBooker().getId());
+        dto.setStatus(booking.getStatus());
+        return dto;
     }
 
     private CommentDto mapToCommentDto(Comment comment) {

@@ -36,7 +36,6 @@ public class Comment {
         this.created = created;
     }
 
-    // getters and setters
     public Long getId() {
         return id;
     }
