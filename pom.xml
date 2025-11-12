@@ -10,8 +10,8 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>gateway</module>
-        <module>server</module>
+        <module>shareit-server</module>
+        <module>shareit-gateway</module>
     </modules>
 
     <properties>
