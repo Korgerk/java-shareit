@@ -66,11 +66,11 @@ class ItemControllerTest {
         outputDto.setDescription("Test Description");
         outputDto.setAvailable(true);
 
-        when(itemService.getById(eq(itemId), userId)).thenReturn(outputDto);
+        when(itemService.getById(eq(itemId), eq(userId))).thenReturn(outputDto);
 
         mockMvc.perform(get("/items/{itemId}", itemId).header("X-Sharer-User-Id", userId)).andExpect(status().isOk()).andExpect(jsonPath("$.id").value(itemId)).andExpect(jsonPath("$.name").value("Test Item")).andExpect(jsonPath("$.description").value("Test Description"));
 
-        verify(itemService, times(1)).getById(eq(itemId), userId);
+        verify(itemService, times(1)).getById(eq(itemId), eq(userId));
     }
 
     @Test
