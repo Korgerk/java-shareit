@@ -14,7 +14,6 @@ import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.expectation.AccessDeniedException;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
-
 import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.model.User;
 

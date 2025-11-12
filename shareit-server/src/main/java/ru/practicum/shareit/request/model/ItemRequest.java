@@ -7,7 +7,6 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.shareit.user.model.User;
 
-
 import java.time.LocalDateTime;
 
 @Entity
