@@ -29,7 +29,7 @@ public class Item {
     Boolean available;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id", nullable = false)
+    @JoinColumn(name = "request_id")
     User owner;
 
     @Column(name = "request_id")

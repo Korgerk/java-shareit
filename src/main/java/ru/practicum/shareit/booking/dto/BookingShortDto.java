@@ -1,16 +1,19 @@
 package ru.practicum.shareit.booking.dto;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
 
 @Setter
 @Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class BookingShortDto {
-    private Long id;
-    private LocalDateTime start;
-    private LocalDateTime end;
-    private Long bookerId;
-    private String status;
+    Long id;
+    LocalDateTime start;
+    LocalDateTime end;
+    Long bookerId;
+    String status;
 }

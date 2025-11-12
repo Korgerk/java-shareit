@@ -1,20 +1,23 @@
 package ru.practicum.shareit.item.dto;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.FieldDefaults;
 import ru.practicum.shareit.booking.dto.BookingShortDto;
 
 import java.util.List;
 
 @Setter
 @Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class ItemDto {
-    private Long id;
-    private String name;
-    private String description;
-    private Boolean available;
-    private BookingShortDto lastBooking;
-    private BookingShortDto nextBooking;
-    private List<CommentDto> comments;
-    private Long requestId;
+    Long id;
+    String name;
+    String description;
+    Boolean available;
+    BookingShortDto lastBooking;
+    BookingShortDto nextBooking;
+    List<CommentDto> comments;
+    Long requestId;
 }
