@@ -18,7 +18,7 @@ public class ItemRequestClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getAllByRequestor(Long userId) {
-        return get(API_PREFIX, userId); // Получение запросов пользователя
+        return get(API_PREFIX, userId);
     }
 
     public ResponseEntity<Object> getAllRequests(Long userId, Integer from, Integer size) {
@@ -27,7 +27,7 @@ public class ItemRequestClient extends BaseClient {
                 "from", from,
                 "size", size
         );
-        return get(path, userId, parameters); // Получение всех запросов
+        return get(path, userId, parameters);
     }
 
     public ResponseEntity<Object> getById(Long userId, Long requestId) {

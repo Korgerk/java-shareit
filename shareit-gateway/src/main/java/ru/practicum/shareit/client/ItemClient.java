@@ -29,18 +29,17 @@ public class ItemClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getOwnerItems(Long userId) {
-        // Предполагаем, что сервер принимает userId через заголовок
         return get(API_PREFIX, userId);
     }
 
     public ResponseEntity<Object> search(String text, Integer from, Integer size) {
         String path = API_PREFIX + "/search?text={text}&from={from}&size={size}";
         Map<String, Object> parameters = Map.of(
-                "text", text == null ? "" : text, // Обработка null
+                "text", text == null ? "" : text,
                 "from", from,
                 "size", size
         );
-        return get(path, null, parameters); // search не требует userId в заголовке
+        return get(path, null, parameters);
     }
 
     public ResponseEntity<Object> addComment(Long userId, Long itemId, CommentDto commentDto) {

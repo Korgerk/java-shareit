@@ -11,6 +11,7 @@ import ru.practicum.shareit.client.UserClient;
 import jakarta.validation.Valid;
 import ru.practicum.shareit.user.model.User;
 
+
 @Controller
 @RequestMapping("/users")
 @RequiredArgsConstructor
@@ -27,7 +28,6 @@ public class UserController {
     @PatchMapping("/{id}")
     public ResponseEntity<Object> update(@PathVariable Long id,
                                          @RequestBody User user) {
-        // Валидация в DTO
         return userClient.update(id, user);
     }
 

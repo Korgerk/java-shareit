@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import ru.practicum.shareit.user.model.User;
 
+
 import java.util.Map;
 
 public class UserClient extends BaseClient {
