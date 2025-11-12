@@ -4,7 +4,8 @@ import org.springframework.http.*;
 import org.springframework.lang.Nullable;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDto;
+
 
 import java.util.List;
 import java.util.Map;
@@ -42,7 +43,7 @@ public class BaseClient {
         return makeAndSendRequest(HttpMethod.GET, path, userId, parameters, null);
     }
 
-    protected <T> ResponseEntity<Object> post(String path, T body, User user) {
+    protected <T> ResponseEntity<Object> post(String path, T body, UserDto user) {
         return post(path, null, null, body);
     }
 

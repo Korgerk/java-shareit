@@ -1,12 +1,14 @@
 package ru.practicum.shareit.client;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
 import java.util.Map;
 
+@Component
 public class ItemClient extends BaseClient {
     private static final String API_PREFIX = "/items";
 
@@ -34,11 +36,7 @@ public class ItemClient extends BaseClient {
 
     public ResponseEntity<Object> search(String text, Integer from, Integer size) {
         String path = API_PREFIX + "/search?text={text}&from={from}&size={size}";
-        Map<String, Object> parameters = Map.of(
-                "text", text == null ? "" : text,
-                "from", from,
-                "size", size
-        );
+        Map<String, Object> parameters = Map.of("text", text == null ? "" : text, "from", from, "size", size);
         return get(path, null, parameters);
     }
 

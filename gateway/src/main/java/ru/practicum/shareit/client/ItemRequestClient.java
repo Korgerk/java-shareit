@@ -1,11 +1,13 @@
 package ru.practicum.shareit.client;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
 import java.util.Map;
 
+@Component
 public class ItemRequestClient extends BaseClient {
     private static final String API_PREFIX = "/requests";
 
@@ -23,10 +25,7 @@ public class ItemRequestClient extends BaseClient {
 
     public ResponseEntity<Object> getAllRequests(Long userId, Integer from, Integer size) {
         String path = API_PREFIX + "/all?from={from}&size={size}";
-        Map<String, Object> parameters = Map.of(
-                "from", from,
-                "size", size
-        );
+        Map<String, Object> parameters = Map.of("from", from, "size", size);
         return get(path, userId, parameters);
     }
 

@@ -1,11 +1,13 @@
 package ru.practicum.shareit.client;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import ru.practicum.shareit.booking.dto.BookingDto;
 
 import java.util.Map;
 
+@Component
 public class BookingClient extends BaseClient {
     private static final String API_PREFIX = "/bookings";
 

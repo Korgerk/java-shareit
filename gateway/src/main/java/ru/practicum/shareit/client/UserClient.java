@@ -1,11 +1,14 @@
 package ru.practicum.shareit.client;
 
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.Map;
 
+@Component
 public class UserClient extends BaseClient {
     private static final String API_PREFIX = "/users";
 
@@ -13,11 +16,11 @@ public class UserClient extends BaseClient {
         super(rest);
     }
 
-    public ResponseEntity<Object> create(User user) {
+    public ResponseEntity<Object> create(@Valid UserDto user) {
         return post(API_PREFIX, null, user);
     }
 
-    public ResponseEntity<Object> update(Long id, User user) {
+    public ResponseEntity<Object> update(Long id, UserDto user) {
         String path = API_PREFIX + "/{id}";
         return patch(path, null, Map.of("id", id), user);
     }
