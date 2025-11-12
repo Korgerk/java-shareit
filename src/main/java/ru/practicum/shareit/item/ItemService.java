@@ -12,6 +12,7 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserService;
 
@@ -27,6 +28,7 @@ public class ItemService {
     private final UserService userService;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     public ItemDto create(ItemDto dto, Long userId) {
         validate(dto);
@@ -35,6 +37,12 @@ public class ItemService {
         item.setName(dto.getName());
         item.setDescription(dto.getDescription());
         item.setAvailable(dto.getAvailable());
+
+        if (dto.getRequestId() != null) {
+            ru.practicum.shareit.request.ItemRequest request = itemRequestRepository.findById(dto.getRequestId()).orElseThrow(() -> new RuntimeException("Запрос с ID " + dto.getRequestId() + " не найден"));
+            item.setItemRequest(request);
+        }
+
         item.setOwner(owner);
         item = itemRepository.save(item);
         return toItemDto(item);
@@ -104,6 +112,11 @@ public class ItemService {
         dto.setName(item.getName());
         dto.setDescription(item.getDescription());
         dto.setAvailable(item.getAvailable());
+        if (item.getItemRequest() != null) {
+            dto.setRequestId(item.getItemRequest().getId());
+        } else {
+            dto.setRequestId(null);
+        }
         return dto;
     }
 
