@@ -3,21 +3,25 @@ package ru.practicum.shareit.user;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.FieldDefaults;
+
+import static lombok.AccessLevel.PRIVATE;
 
 @Entity
 @Table(name = "users")
 @Setter
 @Getter
+@FieldDefaults(level = PRIVATE)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    Long id;
 
     @Column(name = "name", nullable = false)
-    private String name;
+    String name;
 
     @Column(name = "email", nullable = false, unique = true)
-    private String email;
+    String email;
 
     public User() {
     }

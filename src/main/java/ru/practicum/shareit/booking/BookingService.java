@@ -25,39 +25,39 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class BookingService {
+    public static final String ERROR_MESSAGE_END_AFTER_START = "Дата окончания бронирования должна быть позже даты начала.";
+    private static final String ERROR_MESSAGE_CANNOT_BOOK_OWN = "Владелец не может забронировать свою вещь.";
+    private static final String ERROR_MESSAGE_ITEM_NOT_FOUND = "Вещь с ID %d не найдена";
+    private static final String ERROR_MESSAGE_ITEM_UNAVAILABLE = "Вещь недоступна для бронирования.";
+    private static final String ERROR_MESSAGE_START_IN_PAST = "Дата начала бронирования не может быть в прошлом.";
+    private static final String ERROR_MESSAGE_BOOKING_NOT_FOUND = "Бронирование с ID %d не найдено";
+    private static final String ERROR_MESSAGE_OWNER_ONLY_APPROVE = "Только владелец вещи может подтвердить бронирование.";
+    private static final String ERROR_MESSAGE_AUTHOR_OR_OWNER_ONLY = "Только автор бронирования или владелец вещи может просматривать бронирование.";
     private final BookingRepository bookingRepository;
     private final UserService userService;
     private final ItemRepository itemRepository;
 
     public BookingDto create(BookingDto dto, Long userId) {
         User booker = userService.getById(userId);
-        Item item = itemRepository.findById(dto.getItemId()).orElseThrow(() -> new RuntimeException(String.format("Вещь с ID %d не найдена", dto.getItemId())));
+        Item item = itemRepository.findById(dto.getItemId()).orElseThrow(() -> new RuntimeException(String.format(ERROR_MESSAGE_ITEM_NOT_FOUND, dto.getItemId())));
 
         if (!item.getAvailable()) {
-            throw new IllegalArgumentException("Вещь недоступна для бронирования.");
+            throw new IllegalArgumentException(ERROR_MESSAGE_ITEM_UNAVAILABLE);
         }
-
         if (item.getOwner().getId().equals(userId)) {
-            throw new IllegalArgumentException("Владелец не может забронировать свою вещь.");
+            throw new IllegalArgumentException(ERROR_MESSAGE_CANNOT_BOOK_OWN);
         }
 
         LocalDateTime start = dto.getStart();
         LocalDateTime end = dto.getEnd();
-
         if (start == null || end == null) {
             throw new IllegalArgumentException("Дата начала и окончания бронирования обязательны.");
         }
         if (start.isBefore(LocalDateTime.now().minusSeconds(1))) {
-            throw new IllegalArgumentException("Дата начала бронирования не может быть в прошлом.");
+            throw new IllegalArgumentException(ERROR_MESSAGE_START_IN_PAST);
         }
-        if (end.isBefore(start)) {
-            throw new IllegalArgumentException("Дата окончания бронирования должна быть позже даты начала.");
-        }
-        if (start.isEqual(end)) {
-            throw new IllegalArgumentException("Дата окончания бронирования должна быть позже даты начала.");
-        }
-        if (Duration.between(start, end).getSeconds() < 1) {
-            throw new IllegalArgumentException("Дата окончания бронирования должна быть позже даты начала.");
+        if (end.isBefore(start) || start.isEqual(end) || Duration.between(start, end).getSeconds() < 1) {
+            throw new IllegalArgumentException(ERROR_MESSAGE_END_AFTER_START);
         }
 
         Booking booking = new Booking();
@@ -66,16 +66,15 @@ public class BookingService {
         booking.setItem(item);
         booking.setBooker(booker);
         booking.setStatus(BookingStatus.WAITING);
-
         booking = bookingRepository.save(booking);
         return toBookingDto(booking);
     }
 
     public BookingDto updateStatus(Long bookingId, Long userId, Boolean approved) {
-        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new RuntimeException(String.format("Бронирование с ID %d не найдено", bookingId)));
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new RuntimeException(String.format(ERROR_MESSAGE_BOOKING_NOT_FOUND, bookingId)));
 
         if (!booking.getItem().getOwner().getId().equals(userId)) {
-            throw new AccessDeniedException("Только владелец вещи может подтвердить бронирование.");
+            throw new AccessDeniedException(ERROR_MESSAGE_OWNER_ONLY_APPROVE);
         }
 
         if (approved) {
@@ -90,10 +89,10 @@ public class BookingService {
 
     @Transactional(readOnly = true)
     public BookingDto getById(Long bookingId, Long userId) {
-        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new RuntimeException(String.format("Бронирование с ID %d не найдено", bookingId)));
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new RuntimeException(String.format(ERROR_MESSAGE_BOOKING_NOT_FOUND, bookingId)));
 
         if (!booking.getBooker().getId().equals(userId) && !booking.getItem().getOwner().getId().equals(userId)) {
-            throw new AccessDeniedException("Только автор бронирования или владелец вещи может просматривать бронирование.");
+            throw new AccessDeniedException(ERROR_MESSAGE_AUTHOR_OR_OWNER_ONLY);
         }
 
         return toBookingDto(booking);
@@ -102,7 +101,6 @@ public class BookingService {
     @Transactional(readOnly = true)
     public List<BookingDto> getAllByBooker(Long userId, String state, int from, int size) {
         userService.getById(userId);
-
         Sort sort = Sort.by(Sort.Direction.DESC, "start");
         Pageable pageable = PageRequest.of(from / size, size, sort);
 
@@ -127,14 +125,12 @@ public class BookingService {
             default:
                 bookings = bookingRepository.findByBooker_IdOrderByStartDesc(userId, pageable).getContent();
         }
-
         return bookings.stream().map(this::toBookingDto).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<BookingDto> getAllByOwner(Long userId, String state, int from, int size) {
         userService.getById(userId);
-
         Sort sort = Sort.by(Sort.Direction.DESC, "start");
         Pageable pageable = PageRequest.of(from / size, size, sort);
 
@@ -159,7 +155,6 @@ public class BookingService {
             default:
                 bookings = bookingRepository.findByItemOwner_IdOrderByStartDesc(userId, pageable).getContent();
         }
-
         return bookings.stream().map(this::toBookingDto).collect(Collectors.toList());
     }
 
@@ -172,11 +167,9 @@ public class BookingService {
         itemDto.setId(booking.getItem().getId());
         itemDto.setName(booking.getItem().getName());
         dto.setItem(itemDto);
-
         BookingUserDto bookerDto = new BookingUserDto();
         bookerDto.setId(booking.getBooker().getId());
         dto.setBooker(bookerDto);
-
         dto.setStatus(booking.getStatus());
         return dto;
     }
