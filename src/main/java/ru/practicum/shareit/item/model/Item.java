@@ -32,9 +32,6 @@ public class Item {
     @JoinColumn(name = "request_id")
     User owner;
 
-    @Column(name = "request_id")
-    Long requestId;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "request_id")
     ItemRequest itemRequest;

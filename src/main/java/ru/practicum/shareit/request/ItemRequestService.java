@@ -53,7 +53,7 @@ public class ItemRequestService {
 
     @Transactional(readOnly = true)
     public ItemRequestOutputDto getById(Long requestId, Long userId) {
-        userService.getById(userId); // Проверяем существование пользователя
+        userService.getById(userId);
         ItemRequest request = itemRequestRepository.findById(requestId).orElseThrow(() -> new RuntimeException("Запрос с ID " + requestId + " не найден"));
         return toItemRequestOutputDto(request);
     }
