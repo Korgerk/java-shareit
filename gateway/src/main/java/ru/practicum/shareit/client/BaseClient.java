@@ -59,7 +59,7 @@ public abstract class BaseClient {
         return makeAndSendRequest(HttpMethod.DELETE, buildUrl(path), userId, null, null);
     }
 
-    private ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String url, Long userId, @Nullable Map<String, Object> parameters, @Nullable Object body) {
+    private ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String url, Long userId, @Nullable Map<String, Object> parameters, @Nullable Object body) { // <-- Параметр url вместо path
         HttpEntity<Object> requestEntity = new HttpEntity<>(body, defaultHeaders(userId));
 
         ResponseEntity<Object> serverResponse;
