@@ -15,20 +15,6 @@ public class BaseClient {
         this.rest = rest;
     }
 
-    private static ResponseEntity<Object> prepareGatewayResponse(ResponseEntity<Object> response) {
-        if (response.getStatusCode().is2xxSuccessful()) {
-            return response;
-        }
-
-        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.status(response.getStatusCode());
-
-        if (response.hasBody()) {
-            return responseBuilder.body(response.getBody());
-        }
-
-        return responseBuilder.build();
-    }
-
     protected ResponseEntity<Object> get(String path) {
         return get(path, null, null);
     }
@@ -62,15 +48,15 @@ public class BaseClient {
     }
 
     protected <T> ResponseEntity<Object> patch(String path, T body) {
-        return patch(path, null, null, body);
+        return makeAndSendRequest(HttpMethod.PATCH, path, null, null, body);
     }
 
     protected <T> ResponseEntity<Object> patch(String path, long userId) {
-        return patch(path, userId, null, null);
+        return makeAndSendRequest(HttpMethod.PATCH, path, userId, null, null);
     }
 
     protected <T> ResponseEntity<Object> patch(String path, long userId, T body) {
-        return patch(path, userId, null, body);
+        return makeAndSendRequest(HttpMethod.PATCH, path, userId, null, body);
     }
 
     protected <T> ResponseEntity<Object> patch(String path, Long userId, @Nullable Map<String, Object> parameters, T body) {
@@ -100,7 +86,7 @@ public class BaseClient {
                 shareitServerResponse = rest.exchange(path, method, requestEntity, Object.class);
             }
         } catch (HttpStatusCodeException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsByteArray());
+            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
         }
         return prepareGatewayResponse(shareitServerResponse);
     }
@@ -113,5 +99,19 @@ public class BaseClient {
             headers.set("X-Sharer-User-Id", String.valueOf(userId));
         }
         return headers;
+    }
+
+    private static ResponseEntity<Object> prepareGatewayResponse(ResponseEntity<Object> response) {
+        if (response.getStatusCode().is2xxSuccessful()) {
+            return response;
+        }
+
+        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.status(response.getStatusCode());
+
+        if (response.hasBody()) {
+            return responseBuilder.body(response.getBody());
+        }
+
+        return responseBuilder.build();
     }
 }

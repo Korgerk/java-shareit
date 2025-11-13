@@ -1,22 +1,30 @@
 package ru.practicum.shareit.item.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import ru.practicum.shareit.user.User;
+import lombok.*;
+import ru.practicum.shareit.user.model.User;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
-@Entity
-@Table(name = "comments")
-@Setter
 @Getter
+@Setter
+@Builder
+@EqualsAndHashCode(of = "id")
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@SequenceGenerator(
+        name = "id_gen",
+        sequenceName = "comment_seq",
+        allocationSize = 1)
+@Table(name = "comments")
 public class Comment {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    @Column(name = "text", nullable = false, length = 512)
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "id_gen")
+    private long id;
+
+    @Column(name = "text", nullable = false, length = 65535)
     private String text;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -24,9 +32,9 @@ public class Comment {
     private Item item;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User author;
 
-    @Column(name = "created", nullable = false)
-    private LocalDateTime created;
+    @Column(name = "created_at", nullable = false)
+    private Instant created;
 }

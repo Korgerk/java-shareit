@@ -1,19 +1,30 @@
 package ru.practicum.shareit.item.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import ru.practicum.shareit.request.ItemRequest;
-import ru.practicum.shareit.user.User;
+import lombok.*;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.user.model.User;
 
-@Entity
-@Table(name = "items")
-@Setter
+import java.time.Instant;
+
+
 @Getter
+@Setter
+@Builder
+@EqualsAndHashCode(of = "id")
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@SequenceGenerator(
+        name = "id_gen",
+        sequenceName = "item_seq",
+        allocationSize = 1)
+@Table(name = "items")
 public class Item {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "id_gen")
+    private long id;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -21,21 +32,21 @@ public class Item {
     @Column(name = "description", nullable = false)
     private String description;
 
-    @Column(name = "available", nullable = false)
-    private Boolean available;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User owner;
 
+    @Column(name = "is_available", nullable = false)
+    private boolean available;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant created;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updated;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "request_id", nullable = true, referencedColumnName = "id")
+    @JoinColumn(name = "request_id")
     private ItemRequest request;
 
-    public Long getRequestId() {
-        return this.request != null ? this.request.getId() : null;
-    }
-
-    public void setRequestId(Long requestId) {
-    }
 }

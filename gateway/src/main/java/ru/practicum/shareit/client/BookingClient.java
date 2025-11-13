@@ -1,18 +1,18 @@
 package ru.practicum.shareit.client;
 
+import jakarta.validation.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
-import ru.practicum.shareit.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.CreateBookingDto;
 
-import java.util.Map;
 
 @Service
 public class BookingClient extends BaseClient {
-
     private static final String API_PREFIX = "/bookings";
 
     @Autowired
@@ -20,39 +20,32 @@ public class BookingClient extends BaseClient {
         super(
                 builder
                         .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + API_PREFIX))
+                        .requestFactory(() -> new HttpComponentsClientHttpRequestFactory())
                         .build()
         );
     }
 
-    public ResponseEntity<Object> create(Long userId, BookingDto requestDto) {
-        return post("", userId, requestDto);
+    public ResponseEntity<Object> createBooking(long userId, CreateBookingDto booking) {
+        if (booking.getStart().equals(booking.getEnd())
+            || booking.getStart().isAfter(booking.getEnd())) {
+            throw new ValidationException("end should be strongly after start");
+        }
+        return post("", userId, booking);
     }
 
-    public ResponseEntity<Object> updateStatus(Long userId, Long bookingId, Boolean approved) {
-        // Для PATCH запроса с параметром approved, но без тела, используем метод с параметрами и null-телом
-        Map<String, Object> parameters = Map.of("approved", approved);
-        return patch("/" + bookingId, userId, parameters, (Void) null);
+    public ResponseEntity<Object> approveBooking(long userId, long bookingId, Boolean approved) {
+        return patch("/" + bookingId + "?approved=" + approved, userId);
     }
 
-    public ResponseEntity<Object> getById(Long userId, Long bookingId) {
+    public ResponseEntity<Object> getBooking(long userId, long bookingId) {
         return get("/" + bookingId, userId);
     }
 
-    public ResponseEntity<Object> getAllByBooker(Long userId, String state, Integer from, Integer size) {
-        Map<String, Object> parameters = Map.of(
-                "state", state,
-                "from", from,
-                "size", size
-        );
-        return get("", userId, parameters);
+    public ResponseEntity<Object> getUserBookings(long userId) {
+        return get("", userId);
     }
 
-    public ResponseEntity<Object> getAllByOwner(Long userId, String state, Integer from, Integer size) {
-        Map<String, Object> parameters = Map.of(
-                "state", state,
-                "from", from,
-                "size", size
-        );
-        return get("/owner", userId, parameters);
+    public ResponseEntity<Object> getOwnerBookings(long ownerId) {
+        return get("/owner", ownerId);
     }
 }
