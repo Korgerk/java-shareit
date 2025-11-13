@@ -1,17 +1,19 @@
 package ru.practicum.shareit.user.model;
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import static lombok.AccessLevel.PRIVATE;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "users")
-@Setter
-@Getter
-@FieldDefaults(level = PRIVATE)
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,7 +24,4 @@ public class User {
 
     @Column(name = "email", nullable = false, unique = true)
     String email;
-
-    public User() {
-    }
 }

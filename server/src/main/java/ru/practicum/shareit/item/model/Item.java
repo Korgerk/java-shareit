@@ -1,19 +1,20 @@
 package ru.practicum.shareit.item.model;
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
-import static lombok.AccessLevel.PRIVATE;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "items")
-@Setter
-@Getter
-@FieldDefaults(level = PRIVATE)
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Item {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,7 +33,6 @@ public class Item {
     @JoinColumn(name = "owner_id", nullable = false)
     User owner;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "request_id")
-    ItemRequest itemRequest;
+    @Column(name = "request_id")
+    Long requestId;
 }

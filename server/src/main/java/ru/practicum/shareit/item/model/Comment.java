@@ -1,25 +1,27 @@
 package ru.practicum.shareit.item.model;
 
-import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import ru.practicum.shareit.user.model.User;
 
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import ru.practicum.shareit.user.model.User;
 
 @Entity
 @Table(name = "comments")
-@Setter
-@Getter
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Column(name = "text", nullable = false, length = 512)
+    @Column(name = "text", nullable = false)
     String text;
 
     @ManyToOne(fetch = FetchType.LAZY)

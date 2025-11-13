@@ -11,7 +11,7 @@ public class UserClient extends BaseClient {
     private static final String API_PREFIX = "/users";
 
     public UserClient(RestTemplate rest, @Value("${shareit.server.url}") String serverUrl) {
-        super(rest, serverUrl);
+        super(rest);
     }
 
     public ResponseEntity<Object> create(UserDto userDto) {

@@ -14,7 +14,7 @@ public class ItemClient extends BaseClient {
     private static final String API_PREFIX = "/items";
 
     public ItemClient(RestTemplate rest, @Value("${shareit.server.url}") String serverUrl) {
-        super(rest, serverUrl);
+        super(rest);
     }
 
     public ResponseEntity<Object> create(Long userId, ItemDto itemDto) {

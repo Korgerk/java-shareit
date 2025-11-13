@@ -1,40 +1,55 @@
 package ru.practicum.shareit.client;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.model.BookingStatus;
 
-@Component
+import java.util.Map;
+
+@Service
 public class BookingClient extends BaseClient {
+
     private static final String API_PREFIX = "/bookings";
 
-    public BookingClient(RestTemplate rest, @Value("${shareit.server.url}") String serverUrl) {
-        super(rest, serverUrl);
+    @Autowired
+    public BookingClient(@Value("${shareit.server.url}") String serverUrl, RestTemplateBuilder builder) {
+        super(builder.uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + API_PREFIX)).requestFactory((settings) -> new HttpComponentsClientHttpRequestFactory()).build());
     }
 
-    public ResponseEntity<Object> create(Long userId, BookingDto bookingDto) {
-        return post(API_PREFIX, userId, bookingDto);
+    public ResponseEntity<Object> createBooking(Long userId, BookingDto requestDto) {
+        return post("", userId, requestDto);
     }
 
-    public ResponseEntity<Object> updateStatus(Long userId, Long bookingId, Boolean approved) {
-        String path = API_PREFIX + "/" + bookingId + "?approved=" + approved;
-        return patch(path, userId);
+    public ResponseEntity<Object> updateBookingStatus(Long userId, Long bookingId, Boolean approved) {
+        Map<String, Object> parameters = Map.of("approved", approved);
+        return patch("/" + bookingId, userId, parameters, null);
     }
 
-    public ResponseEntity<Object> getById(Long userId, Long bookingId) {
-        String path = API_PREFIX + "/" + bookingId;
-        return get(path, userId);
+    public ResponseEntity<Object> getBooking(Long userId, Long bookingId) {
+        return get("/" + bookingId, userId);
     }
 
-    public ResponseEntity<Object> getAllByBooker(Long userId, String state, Integer from, Integer size) {
-        String path = API_PREFIX + "?state=" + state + "&from=" + from + "&size=" + size;
-        return get(path, userId);
+    public ResponseEntity<Object> getBookingsByBookerId(Long userId, BookingStatus state, Integer from, Integer size) {
+        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        parameters.add("state", state.name());
+        parameters.add("from", from.toString());
+        parameters.add("size", size.toString());
+        return get("", userId, parameters);
     }
 
-    public ResponseEntity<Object> getAllByOwner(Long userId, String state, Integer from, Integer size) {
-        String path = API_PREFIX + "/owner?state=" + state + "&from=" + from + "&size=" + size;
-        return get(path, userId);
+    public ResponseEntity<Object> getBookingsByOwnerId(Long userId, BookingStatus state, Integer from, Integer size) {
+        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        parameters.add("state", state.name());
+        parameters.add("from", from.toString());
+        parameters.add("size", size.toString());
+        return get("/owner", userId, parameters);
     }
 }

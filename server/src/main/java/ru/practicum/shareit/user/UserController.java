@@ -1,47 +1,45 @@
 package ru.practicum.shareit.user;
 
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.dto.UserUpdateDto;
 
-import java.util.List;
+import jakarta.validation.Valid;
 
-@RestController
+@Controller
 @RequestMapping(path = "/users")
+@RequiredArgsConstructor
+@Validated
 public class UserController {
 
     private final UserService userService;
 
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
-
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public User create(@RequestBody User user) {
+    public ResponseEntity<Object> create(@Valid @RequestBody UserDto user) {
         return userService.create(user);
     }
 
     @PatchMapping("/{id}")
-    public User update(@PathVariable Long id, @RequestBody User user) {
+    public ResponseEntity<Object> update(@PathVariable Long id, @Valid @RequestBody UserUpdateDto user) {
         return userService.update(id, user);
     }
 
     @GetMapping
-    public List<User> getAll() {
+    public ResponseEntity<Object> getAll() {
         return userService.getAll();
     }
 
     @GetMapping("/{id}")
-    public User getById(@PathVariable Long id) {
-        User user = userService.getById(id);
-        if (user == null) throw new RuntimeException("Пользователь не найден");
-        return user;
+    public ResponseEntity<Object> getById(@PathVariable Long id) {
+        return userService.getById(id);
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
-        userService.deleteById(id);
+    public ResponseEntity<Object> delete(@PathVariable Long id) {
+        return userService.delete(id);
     }
 }
