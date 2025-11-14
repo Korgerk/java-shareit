@@ -5,27 +5,30 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
-import ru.practicum.shareit.dto.ItemRequestDto;
+import ru.practicum.shareit.dto.UserDto;
 
 import java.util.List;
 import java.util.Map;
 
 @Service
-public class ItemRequestClient extends BaseClient {
+public class UserClient extends BaseClient {
 
-    private static final String API_PREFIX = "/requests";
+    private static final String API_PREFIX = "/users";
 
     @Autowired
-    public ItemRequestClient(@Value("${shareit-server.url}") String serverUrl) {
+    public UserClient(@Value("${shareit-server.url}") String serverUrl) {
         super(serverUrl);
     }
 
-    public ResponseEntity<Object> create(Long userId, ItemRequestDto requestDto) {
-        return post(API_PREFIX, userId, requestDto);
+    public ResponseEntity<Object> create(UserDto userDto) {
+        return post(API_PREFIX, null, userDto);
     }
 
-    public ResponseEntity<Object> getById(Long userId, Long requestId, MultiValueMap<String, String> params) {
-        // Преобразуем MultiValueMap в Map<String, Object>
+    public ResponseEntity<Object> update(Long userId, UserDto userDto) {
+        return patch(API_PREFIX + "/" + userId, userId, userDto);
+    }
+
+    public ResponseEntity<Object> getById(Long userId, MultiValueMap<String, String> params) {
         Map<String, Object> parameters = null;
         if (params != null) {
             parameters = new java.util.HashMap<>();
@@ -39,11 +42,10 @@ public class ItemRequestClient extends BaseClient {
                 }
             }
         }
-        return get(API_PREFIX + "/" + requestId, userId, parameters); // Вызов основного метода get
+        return get(API_PREFIX + "/" + userId, userId, parameters);
     }
 
-    public ResponseEntity<Object> getAllByRequestor(Long userId, MultiValueMap<String, String> params) {
-        // Преобразуем MultiValueMap в Map<String, Object>
+    public ResponseEntity<Object> getAll(MultiValueMap<String, String> params) {
         Map<String, Object> parameters = null;
         if (params != null) {
             parameters = new java.util.HashMap<>();
@@ -57,11 +59,10 @@ public class ItemRequestClient extends BaseClient {
                 }
             }
         }
-        return get(API_PREFIX, userId, parameters); // Вызов основного метода get
+        return get(API_PREFIX, null, parameters);
     }
 
-    public ResponseEntity<Object> getAll(Long userId, Integer from, Integer size) {
-        Map<String, Object> parameters = Map.of("from", from, "size", size);
-        return get(API_PREFIX + "/all", userId, parameters);
+    public ResponseEntity<Object> delete(Long userId) {
+        return delete(API_PREFIX + "/" + userId, userId);
     }
 }
