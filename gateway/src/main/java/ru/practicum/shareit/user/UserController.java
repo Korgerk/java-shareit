@@ -14,8 +14,13 @@ import ru.practicum.shareit.user.dto.UpdateUserDto;
 @RequiredArgsConstructor
 @Validated
 @RestController
-@RequestMapping(path = "/users")
+@RequestMapping(path = UserController.BASE_PATH)
 public class UserController {
+
+    public static final String BASE_PATH = "/users";
+    public static final String ID_PATH = "/{id}";
+
+    public static final String POSITIVE_ID_MESSAGE = "id should be positive number";
 
     private final UserClient userClient;
 
@@ -28,18 +33,18 @@ public class UserController {
         return userClient.createUser(user);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(ID_PATH)
     public ResponseEntity<Object> getUser(
-            @PathVariable @Positive(message = "id should be positive number")
+            @PathVariable @Positive(message = POSITIVE_ID_MESSAGE)
             long id
     ) {
         log.info("Request to get user with id={}", id);
         return userClient.getUser(id);
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping(ID_PATH)
     public ResponseEntity<Object> updateUser(
-            @PathVariable @Positive(message = "id should be positive number")
+            @PathVariable @Positive(message = POSITIVE_ID_MESSAGE)
             long id,
             @RequestBody @Valid
             UpdateUserDto user
@@ -48,9 +53,9 @@ public class UserController {
         return userClient.updateUser(id, user);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(ID_PATH)
     public ResponseEntity<Object> deleteUser(
-            @PathVariable @Positive(message = "id should be positive number")
+            @PathVariable @Positive(message = POSITIVE_ID_MESSAGE)
             long id
     ) {
         log.info("Request to delete user with id={}", id);

@@ -13,19 +13,26 @@ import ru.practicum.shareit.booking.service.BookingService;
 
 import java.util.List;
 
-
 @Slf4j
 @RequiredArgsConstructor
 @Validated
 @RestController
-@RequestMapping(path = "/bookings")
+@RequestMapping(path = BookingController.BASE_PATH)
 public class BookingController {
+
+    public static final String BASE_PATH = "/bookings";
+    public static final String BOOKING_ID_PATH = "/{bookingId}";
+    public static final String OWNER_PATH = "/owner";
+
+    public static final String USER_ID_HEADER = "X-Sharer-User-Id";
+    public static final String POSITIVE_USER_ID_MESSAGE = "user id should be positive number";
+    public static final String POSITIVE_BOOKING_ID_MESSAGE = "booking id should be positive number";
 
     private final BookingService bookingService;
 
     @PostMapping
     public BookingDto createBooking(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId,
             @RequestBody @Valid
             CreateBookingDto booking
@@ -34,11 +41,11 @@ public class BookingController {
         return bookingService.addBooking(userId, booking);
     }
 
-    @PatchMapping("/{bookingId}")
+    @PatchMapping(BOOKING_ID_PATH)
     public BookingDto approveBooking(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId,
-            @PathVariable @Positive(message = "booking id should be positive number")
+            @PathVariable @Positive(message = POSITIVE_BOOKING_ID_MESSAGE)
             long bookingId,
             @RequestParam @NotNull
             Boolean approved
@@ -47,11 +54,11 @@ public class BookingController {
         return bookingService.approveBooking(userId, bookingId, approved);
     }
 
-    @GetMapping("/{bookingId}")
+    @GetMapping(BOOKING_ID_PATH)
     public BookingDto getBooking(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId,
-            @PathVariable @Positive(message = "booking id should be positive number")
+            @PathVariable @Positive(message = POSITIVE_BOOKING_ID_MESSAGE)
             long bookingId
     ) {
         log.info("TEST Request from user={} for get booking={}", userId, bookingId);
@@ -60,20 +67,19 @@ public class BookingController {
 
     @GetMapping
     public List<BookingDto> getUserBookings(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId
     ) {
         log.info("TEST Request from user={} for get bookings", userId);
         return bookingService.getUserBookings(userId);
     }
 
-    @GetMapping("/owner")
+    @GetMapping(OWNER_PATH)
     public List<BookingDto> getOwnerBookings(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId
     ) {
         log.info("TEST Request from user={} for get owner bookings", userId);
         return bookingService.getOwnerBookings(userId);
     }
-
 }

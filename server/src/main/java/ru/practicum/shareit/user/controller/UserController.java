@@ -12,13 +12,17 @@ import ru.practicum.shareit.user.dto.UpdateUserDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
 
-
 @Slf4j
 @RequiredArgsConstructor
 @Validated
 @RestController
-@RequestMapping(path = "/users")
+@RequestMapping(path = UserController.BASE_PATH)
 public class UserController {
+
+    public static final String BASE_PATH = "/users";
+    public static final String ID_PATH = "/{id}";
+
+    public static final String POSITIVE_ID_MESSAGE = "id should be positive number";
 
     private final UserService userService;
 
@@ -32,18 +36,18 @@ public class UserController {
         return userService.createUser(user);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(ID_PATH)
     public UserDto getUser(
-            @PathVariable @Positive(message = "id should be positive number")
+            @PathVariable @Positive(message = POSITIVE_ID_MESSAGE)
             long id
     ) {
         log.info("TEST Request to get user={}", id);
         return userService.getUser(id);
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping(ID_PATH)
     public UserDto updateUser(
-            @PathVariable @Positive(message = "id should be positive number")
+            @PathVariable @Positive(message = POSITIVE_ID_MESSAGE)
             long id,
             @RequestBody @Valid
             UpdateUserDto updateUserDto
@@ -52,10 +56,10 @@ public class UserController {
         return userService.updateUser(id, updateUserDto);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(ID_PATH)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(
-            @PathVariable @Positive(message = "id should be positive number")
+            @PathVariable @Positive(message = POSITIVE_ID_MESSAGE)
             long id
     ) {
         log.info("TEST Request to delete user with id: {}", id);

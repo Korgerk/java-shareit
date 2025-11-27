@@ -16,14 +16,23 @@ import ru.practicum.shareit.item.dto.UpdateItemDto;
 @RequiredArgsConstructor
 @Validated
 @RestController
-@RequestMapping(path = "/items")
+@RequestMapping(path = ItemController.BASE_PATH)
 public class ItemController {
+
+    public static final String BASE_PATH = "/items";
+    public static final String ITEM_PATH = "/{itemId}";
+    public static final String SEARCH_PATH = "/search";
+    public static final String COMMENT_PATH = "/{itemId}/comment";
+
+    public static final String USER_ID_HEADER = "X-Sharer-User-Id";
+    public static final String POSITIVE_USER_ID_MESSAGE = "user id should be positive number";
+    public static final String POSITIVE_ITEM_ID_MESSAGE = "item id should be positive number";
 
     private final ItemClient itemClient;
 
     @PostMapping
     public ResponseEntity<Object> addItem(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId,
             @RequestBody @Valid
             CreateItemDto item
@@ -32,11 +41,11 @@ public class ItemController {
         return itemClient.addItem(userId, item);
     }
 
-    @PatchMapping("/{itemId}")
-    public ResponseEntity<Object> addItem(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+    @PatchMapping(ITEM_PATH)
+    public ResponseEntity<Object> updateItem(
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId,
-            @PathVariable @Positive(message = "item id should be positive number")
+            @PathVariable @Positive(message = POSITIVE_ITEM_ID_MESSAGE)
             long itemId,
             @RequestBody @Valid
             UpdateItemDto item
@@ -47,27 +56,27 @@ public class ItemController {
 
     @GetMapping
     public ResponseEntity<Object> getUserItems(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId
     ) {
         log.info("Request from userId={} for get his items", userId);
         return itemClient.getUserItems(userId);
     }
 
-    @GetMapping("/{itemId}")
+    @GetMapping(ITEM_PATH)
     public ResponseEntity<Object> getItem(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId,
-            @PathVariable @Positive(message = "item id should be positive number")
+            @PathVariable @Positive(message = POSITIVE_ITEM_ID_MESSAGE)
             long itemId
     ) {
         log.info("Request from userId={} for get item with id={}", userId, itemId);
         return itemClient.getItem(userId, itemId);
     }
 
-    @GetMapping("/search")
+    @GetMapping(SEARCH_PATH)
     public ResponseEntity<Object> searchItems(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId,
             @RequestParam @NotBlank
             String text
@@ -76,11 +85,11 @@ public class ItemController {
         return itemClient.searchItems(userId, text);
     }
 
-    @PostMapping("/{itemId}/comment")
+    @PostMapping(COMMENT_PATH)
     public ResponseEntity<Object> addComment(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId,
-            @PathVariable @Positive(message = "item id should be positive number")
+            @PathVariable @Positive(message = POSITIVE_ITEM_ID_MESSAGE)
             long itemId,
             @RequestBody @Valid
             CreateCommentDto comment

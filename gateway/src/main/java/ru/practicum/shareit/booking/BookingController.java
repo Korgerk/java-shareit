@@ -10,18 +10,26 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.CreateBookingDto;
 
-
 @Slf4j
 @RequiredArgsConstructor
 @Validated
 @RestController
-@RequestMapping(path = "/bookings")
+@RequestMapping(path = BookingController.BASE_PATH)
 public class BookingController {
+
+    public static final String BASE_PATH = "/bookings";
+    public static final String BOOKING_ID_PATH = "/{bookingId}";
+    public static final String OWNER_PATH = "/owner";
+
+    public static final String USER_ID_HEADER = "X-Sharer-User-Id";
+    public static final String POSITIVE_USER_ID_MESSAGE = "user id should be positive number";
+    public static final String POSITIVE_BOOKING_ID_MESSAGE = "booking id should be positive number";
+
     private final BookingClient bookingClient;
 
     @PostMapping
     public ResponseEntity<Object> createBooking(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId,
             @RequestBody @Valid
             CreateBookingDto booking
@@ -30,11 +38,11 @@ public class BookingController {
         return bookingClient.createBooking(userId, booking);
     }
 
-    @PatchMapping("/{bookingId}")
+    @PatchMapping(BOOKING_ID_PATH)
     public ResponseEntity<Object> approveBooking(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId,
-            @PathVariable @Positive(message = "booking id should be positive number")
+            @PathVariable @Positive(message = POSITIVE_BOOKING_ID_MESSAGE)
             long bookingId,
             @RequestParam @NotNull
             Boolean approved
@@ -43,11 +51,11 @@ public class BookingController {
         return bookingClient.approveBooking(userId, bookingId, approved);
     }
 
-    @GetMapping("/{bookingId}")
+    @GetMapping(BOOKING_ID_PATH)
     public ResponseEntity<Object> getBooking(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId,
-            @PathVariable @Positive(message = "booking id should be positive number")
+            @PathVariable @Positive(message = POSITIVE_BOOKING_ID_MESSAGE)
             long bookingId
     ) {
         log.info("Request from userId={} for get bookingId={}", userId, bookingId);
@@ -56,16 +64,16 @@ public class BookingController {
 
     @GetMapping
     public ResponseEntity<Object> getUserBookings(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId
     ) {
         log.info("Request from userId={} for get his bookings", userId);
         return bookingClient.getUserBookings(userId);
     }
 
-    @GetMapping("/owner")
+    @GetMapping(OWNER_PATH)
     public ResponseEntity<Object> getOwnerBookings(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId
     ) {
         log.info("Request from userId={} for get owner bookings", userId);

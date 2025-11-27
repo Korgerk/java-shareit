@@ -13,14 +13,21 @@ import ru.practicum.shareit.request.dto.CreateItemRequestDto;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(path = "/requests")
+@RequestMapping(path = RequestController.BASE_PATH)
 public class RequestController {
+
+    public static final String BASE_PATH = "/requests";
+    public static final String ALL_PATH = "/all";
+    public static final String GET_BY_ID_PATH = "/{requestId}";
+
+    public static final String USER_ID_HEADER = "X-Sharer-User-Id";
+    public static final String POSITIVE_USER_ID_MESSAGE = "user id should be positive number";
 
     private final RequestClient requestClient;
 
     @PostMapping
     public ResponseEntity<Object> addRequest(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId,
             @RequestBody @Valid
             CreateItemRequestDto request
@@ -31,23 +38,23 @@ public class RequestController {
 
     @GetMapping
     public ResponseEntity<Object> getUserItemRequests(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId
     ) {
         log.info("Request from userId={} for get his requests", userId);
         return requestClient.getUserItemRequests(userId);
     }
 
-    @GetMapping("/all")
+    @GetMapping(ALL_PATH)
     public ResponseEntity<Object> getOtherUsersItemRequests(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId
     ) {
         log.info("Request from userId={} for get other users requests", userId);
         return requestClient.getOtherUsersItemRequests(userId);
     }
 
-    @GetMapping("/{requestId}")
+    @GetMapping(GET_BY_ID_PATH)
     public ResponseEntity<Object> getItemRequest(@PathVariable long requestId) {
         log.info("Request for get request with id={}", requestId);
         return requestClient.getItemRequest(requestId);

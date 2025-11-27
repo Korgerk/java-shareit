@@ -11,19 +11,27 @@ import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.List;
 
-
 @Slf4j
 @RequiredArgsConstructor
 @Validated
 @RestController
-@RequestMapping(path = "/items")
+@RequestMapping(path = ItemController.BASE_PATH)
 public class ItemController {
+
+    public static final String BASE_PATH = "/items";
+    public static final String ITEM_ID_PATH = "/{itemId}";
+    public static final String SEARCH_PATH = "/search";
+    public static final String COMMENT_PATH = "/{itemId}/comment";
+
+    public static final String USER_ID_HEADER = "X-Sharer-User-Id";
+    public static final String POSITIVE_USER_ID_MESSAGE = "user id should be positive number";
+    public static final String POSITIVE_ITEM_ID_MESSAGE = "item id should be positive number";
 
     private final ItemService itemService;
 
     @PostMapping
     public ItemDto addItem(
-            @RequestHeader("X-Sharer-User-Id") @Positive
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId,
             @RequestBody @Valid
             CreateItemDto item
@@ -32,11 +40,11 @@ public class ItemController {
         return itemService.addItem(userId, item);
     }
 
-    @PatchMapping("/{itemId}")
+    @PatchMapping(ITEM_ID_PATH)
     public ItemDto updateItem(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId,
-            @PathVariable @Positive(message = "item id should be positive number")
+            @PathVariable @Positive(message = POSITIVE_ITEM_ID_MESSAGE)
             long itemId,
             @RequestBody @Valid
             UpdateItemDto item
@@ -47,40 +55,39 @@ public class ItemController {
 
     @GetMapping
     public List<ItemDto> getUserItems(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId
     ) {
         log.info("TEST Request from user_id={} to get items", userId);
         return itemService.getItems(userId);
     }
 
-    @GetMapping("/{itemId}")
+    @GetMapping(ITEM_ID_PATH)
     public ItemWithAdditionalInfoDto getItem(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId,
-            @PathVariable @Positive(message = "item id should be positive number")
+            @PathVariable @Positive(message = POSITIVE_ITEM_ID_MESSAGE)
             long itemId
     ) {
         log.info("TEST Request from user_id={} to get item={}", userId, itemId);
         return itemService.getItem(itemId, userId);
     }
 
-    @GetMapping("/search")
+    @GetMapping(SEARCH_PATH)
     public List<ItemDto> searchItems(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId,
-            @RequestParam
-            String text
+            @RequestParam String text
     ) {
         log.info("TEST Request from user_id={} to search item by text={}", userId, text);
         return itemService.searchItems(text);
     }
 
-    @PostMapping("/{itemId}/comment")
+    @PostMapping(COMMENT_PATH)
     public CommentDto addComment(
-            @RequestHeader("X-Sharer-User-Id") @Positive(message = "user id should be positive number")
+            @RequestHeader(USER_ID_HEADER) @Positive(message = POSITIVE_USER_ID_MESSAGE)
             long userId,
-            @PathVariable @Positive(message = "item id should be positive number")
+            @PathVariable @Positive(message = POSITIVE_ITEM_ID_MESSAGE)
             long itemId,
             @RequestBody @Valid
             CreateCommentDto comment
@@ -88,5 +95,4 @@ public class ItemController {
         log.info("Request from user={} to create comment for item={}", userId, itemId);
         return itemService.addComment(userId, itemId, comment);
     }
-
 }
