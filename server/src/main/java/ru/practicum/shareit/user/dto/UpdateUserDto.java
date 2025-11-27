@@ -1,12 +1,15 @@
 package ru.practicum.shareit.user.dto;
 
 import jakarta.validation.constraints.Email;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 
 
 @Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class UpdateUserDto {
-    private String name;
+    String name;
     @Email
-    private String email;
+    String email;
 }

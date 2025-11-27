@@ -2,6 +2,7 @@ package ru.practicum.shareit.request.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
@@ -21,21 +22,22 @@ import java.util.List;
         sequenceName = "req_seq",
         allocationSize = 1)
 @Table(name = "requests")
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class ItemRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "id_gen")
-    private long id;
+    long id;
 
     @Column(name = "description", nullable = false)
-    private String description;
+    String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User author;
+    User author;
 
     @Column(name = "created_at", nullable = false)
-    private Instant created;
+    Instant created;
 
     @OneToMany(mappedBy = "request", fetch = FetchType.LAZY)
-    private final List<Item> items = new ArrayList<>();
+    final List<Item> items = new ArrayList<>();
 }

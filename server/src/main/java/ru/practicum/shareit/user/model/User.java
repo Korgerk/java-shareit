@@ -2,6 +2,7 @@ package ru.practicum.shareit.user.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
 
@@ -17,21 +18,22 @@ import java.time.Instant;
         sequenceName = "user_seq",
         allocationSize = 1)
 @Table(name = "users")
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "id_gen")
-    private long id;
+    long id;
 
     @Column(name = "name")
-    private String name;
+    String name;
 
     @Column(name = "email", nullable = false, unique = true)
-    private String email;
+    String email;
 
     @Column(name = "created_at", nullable = false)
-    private Instant created;
+    Instant created;
 
     @Column(name = "updated_at", nullable = false)
-    private Instant updated;
+    Instant updated;
 }

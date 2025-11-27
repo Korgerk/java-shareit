@@ -1,4 +1,4 @@
-package ru.practicum.shareit.booking.api;
+package ru.practicum.shareit.booking.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;

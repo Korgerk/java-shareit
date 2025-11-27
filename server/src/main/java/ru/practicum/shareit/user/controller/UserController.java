@@ -1,4 +1,4 @@
-package ru.practicum.shareit.user.api;
+package ru.practicum.shareit.user.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
