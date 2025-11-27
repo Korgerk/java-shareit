@@ -20,7 +20,7 @@ spring:
   datasource:
     driver-class-name: "org.postgresql.Driver"
     url: "jdbc:postgresql://localhost:5432/shareit"
-    username: "dbuser"
+    username: "postgres"
     password: "12345"
 
 logging:
