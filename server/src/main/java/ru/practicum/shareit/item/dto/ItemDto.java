@@ -1,19 +1,16 @@
 package ru.practicum.shareit.item.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
-import ru.practicum.shareit.booking.dto.BookingShortDto;
 
-import java.util.List;
 
-@Setter
 @Getter
+@Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ItemDto {
-    private Long id;
+    private long id;
     private String name;
     private String description;
-    private Boolean available;
-    private BookingShortDto lastBooking;
-    private BookingShortDto nextBooking;
-    private List<CommentDto> comments;
+    private boolean available;
 }
